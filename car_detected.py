@@ -350,8 +350,7 @@ def cut_and_trans(img,src,point):
     
     return dst
 
-cap1 = cv2.VideoCapture('/Users/wenwei/Documents/ＭＹ課業/專題/cam1.MOV')
-cap2 = cv2.VideoCapture('/Users/wenwei/Documents/ＭＹ課業/專題/cam2.MOV')
+cap1 = cv2.VideoCapture('/home/shaimejump/Desktop/project/CarDetected/cut.mov')
 out = cv2.VideoWriter('qqqqqq.mov',-1,30,(512,512))
 
 
@@ -401,32 +400,7 @@ while(True):
     else:
         cam_count = cam_count + 1
         continue
-    # Capture cam2
-    ret, frame = cap2.read()
-    frame = cv2.flip(frame,-1)
-    trans_count2=trans_count2%10
-    if trans_count2==0:
-        point_cam2=find_center_cam2(frame,133,75,56,point_cam2) #blue
-        point2_cam2=find_center_cam2(frame,133,104,137,point2_cam2) #red
-        if len(point_cam2)==4:
-            point_cam2=sortpoint(point_cam2)
-        if len(point2_cam2)==4:
-            point2_cam2=sortpoint(point2_cam2)
-
-    trans_count2=trans_count2+1
-
-    dst = np.zeros((512,512,3), np.uint8)
-    dst=transform(frame,dst,point_cam2) 
-    dst,B_car = find_car_cam2(dst,174,133,224,True)
-
-    dst2 = np.zeros((512,512,3), np.uint8)
-    dst2=transform(frame,dst2,point2_cam2)
-    dst2,R_car = find_car_cam2(dst2,174,133,224,False)
- 
-    if lastY < 256:    
-        lastX = (( B_car[0]*carHigh ) + (R_car[0]*(wallHigh-carHigh)))/wallHigh
-        lastY = (( B_car[1]*carHigh ) + (R_car[1]*(wallHigh-carHigh)))/wallHigh      
-        last = (int(lastX),int(lastY))
+   
 
     newsrc = cv2.resize(mapp,None,fx=(512/514), fy=(512/514), interpolation = cv2.INTER_CUBIC)
     cv2.circle(newsrc, last, 5, (0, 0, 150), -1)
