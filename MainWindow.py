@@ -1,4 +1,5 @@
 from tkinter import *	
+import tkinter.font as font
 from threading import Thread
 import threading
 from Connection import *
@@ -20,6 +21,11 @@ class myThread(Thread):
 
 	def stopped(self):
 		return self._stop_event.is_set()
+
+def Exit(r):
+	print("test")
+	r.destroy()
+	sys.exit(0)
 		
 def convert():
 	global count,ConThread,Con
@@ -42,16 +48,21 @@ def convert():
 
 if __name__ == "__main__":
 	win = Tk()
-
+	main_frame = Frame(win)
+	main_frame.grid()
 	#create connection obj
-	Con = ServerConnection()
+	Con = ServerConnection(win)
 	Con.OpenServerSocket()
+
+	#Font setting
+	helv36 = font.Font(family='Helvetica', size=18, weight=font.BOLD)
 	btn_text = StringVar()
 	btn_text.set("Start Server")
-	StartServerBtn = Button(textvariable= btn_text,command = convert)
-	StartServerBtn.pack()
-
-
+	StartServerBtn = Button(main_frame, textvariable= btn_text,command = convert,font = helv36)
+	StartServerBtn.pack(side = LEFT)
+	ExitBtn = Button(main_frame,text = "結束", command = lambda: Exit(win),font = helv36)
+	ExitBtn.pack(side = RIGHT)
+	
 
 	#window size setting
 	w = win.winfo_reqwidth() # width for the Tk root
@@ -60,8 +71,8 @@ if __name__ == "__main__":
 	ws = win.winfo_screenwidth() # width of the screen
 	hs = win.winfo_screenheight() # height of the screen
 	# calculate x and y coordinates for the Tk root window
-	x = (ws/2) - (w/2)
-	y = (hs/2) - (h/2)
+	x = (ws/2) - (500/2)
+	y = (hs/2) - (500/2)
 	# set the dimensions of the screen and where it is placed
-	win.geometry('%dx%d+%d+%d' % (w, h, x, y))
+	win.geometry('%dx%d+%d+%d' % (500, 500, x, y))
 	win.mainloop()

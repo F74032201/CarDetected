@@ -1,11 +1,15 @@
 import socket, select
+from tkinter import *
+from Player import *
 
 class ServerConnection:
-	def __init__(self):
+	def __init__(self,root):
+		self.root = root
 		self.RECV_BUFFER = 4096 
 		self.PORT = 5000
 		self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.CONNECTION_DICT = {}
+		self.player = {}
 
 	def send_data(self,sock, message):
 		#Do not send the message to master socket and the client who has send us the message
@@ -71,6 +75,8 @@ class ServerConnection:
 			            if 'Register:' in data:
 			                self.CONNECTION_DICT[sock] = data[9:]
 			                print("registed:",data[9:])
+			                #create player obj
+			                self.player[sock] = Player(self.root, data[9:])
 			            elif 'Broadcast' in data:
 			                self.broadcast_data(sock,data[10:]+'\r') 
 			                
@@ -82,6 +88,8 @@ class ServerConnection:
 			            #broadcast_data(sock, "Client (%s, %s) is offline" % addr)
 			            print ("Client (%s, %s) is offline" % addr)
 			            sock.close()
+			            self.player[sock].delete()
+			            del self.player[sock]
 			            self.CONNECTION_DICT.pop(sock)
 			            continue
 		self.server_socket.close()
