@@ -1,7 +1,7 @@
 from tkinter import *	
 import tkinter.font as font
 from threading import Thread
-import threading
+import threading,os
 from Connection import *
 
 count = 0
@@ -23,9 +23,10 @@ class myThread(Thread):
 		return self._stop_event.is_set()
 
 def Exit(r):
-	print("test")
+	#sys.exit(0)
+	os._exit(1)
 	r.destroy()
-	sys.exit(0)
+	
 		
 def convert():
 	global count,ConThread,Con
@@ -34,12 +35,15 @@ def convert():
 
 		#delete Connection obj
 		Con.CONNECTION_DICT = {Con.server_socket:"Master"}	
+		#Con.loop_continue = False
+		for x in Con.player:
+			Con.player[x].delete()
+		Con.player={}
 		ConThread.stop()
-
+		
 	else:
 		btn_text.set("Close Server")
-		#Con,ConThread = CreateCon()
-				
+		#Con,ConThread = CreateCon()	
 		ConThread = myThread(Con)
 		ConThread.start()
 		print("Waiting")

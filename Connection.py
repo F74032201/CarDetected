@@ -10,6 +10,7 @@ class ServerConnection:
 		self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.CONNECTION_DICT = {}
 		self.player = {}
+		#self.loop_continue = True;
 
 	def send_data(self,sock, message):
 		#Do not send the message to master socket and the client who has send us the message
@@ -18,10 +19,12 @@ class ServerConnection:
 				Name = message[0:message.index('|')]
 				if self.CONNECTION_DICT[socket] == Name:    
 					try :
-						socket.send(message[message.index('|')+1:].encode(encoding='utf-8'))
-						print(message[message.index('|')+1:])
+						socket.send(message.encode(encoding='utf-8'))
+						#print(message[message.index('|')+1:])
 					except :
 						# broken socket connection may be, chat client pressed ctrl+c for example
+						self.player[socket].delete()
+						del self.player[socket]
 						self.CONNECTION_DICT.pop(socket)
 						socket.close()
 	#Function to broadcast chat messages to all connected clients
@@ -33,6 +36,8 @@ class ServerConnection:
 					socket.send(message.encode(encoding='utf-8'))	                
 				except :
 					# broken socket connection may be, chat client pressed ctrl+c for example
+					self.player[socket].delete()
+					del self.player[socket]
 					self.CONNECTION_DICT.pop(socket)
 					socket.close()
 
@@ -77,8 +82,9 @@ class ServerConnection:
 			                print("registed:",data[9:])
 			                #create player obj
 			                self.player[sock] = Player(self.root, data[9:])
+			                print(self.player[sock])
 			            elif 'Broadcast' in data:
-			                self.broadcast_data(sock,data[10:]+'\r') 
+			                self.broadcast_data(sock,data+'\r') 
 			                
 			            #sent to specific client   
 			            elif '|' in data:
@@ -86,11 +92,11 @@ class ServerConnection:
 			                
 			        except:
 			            #broadcast_data(sock, "Client (%s, %s) is offline" % addr)
-			            print ("Client (%s, %s) is offline" % addr)
-			            sock.close()
+			            print(self.player[sock])
 			            self.player[sock].delete()
 			            del self.player[sock]
 			            self.CONNECTION_DICT.pop(sock)
+			            sock.close()
 			            continue
 		self.server_socket.close()
 		print("s close")
