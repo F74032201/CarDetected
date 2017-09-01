@@ -3,13 +3,13 @@ from SetColor import *
 
 class Player(object):
 	"""droottring for Player"""
-	def __init__(self, root, name):
+	def __init__(self, root,name):
 		super(Player, self).__init__()
 		self.root = root
 		self.name = name
-		self.frame = Frame(self.root)
-		self.frame.grid()
-		self.connected = Label(self.frame, text = self.name + ' 已連線').pack(side = LEFT)
+		self.frame = LabelFrame(self.root,text = self.name,foreground = 'blue')
+		self.frame.pack(fill='x',padx=10,pady=8)
+		#self.connected = Label(self.frame, text = self.name + ' 已連線').pack(side = LEFT)
 		self.SetColorB=Button(self.frame,text="Set color",command=self.popup).pack(side = LEFT)
 
 		self.value_B = -1
@@ -17,13 +17,12 @@ class Player(object):
 		self.value_R = -1
 		self.rgb_text = StringVar()
 		self.rgb_text.set('B:'+str(self.value_B)+ ' G:'+str(self.value_G) + ' R:'+str(self.value_R))
-		self.RGB = Label(self.frame,textvariable = self.rgb_text).pack(side = LEFT)
+		self.RGB = Label(self.frame,textvariable = self.rgb_text).pack(side = RIGHT)
 
 		self.Refresh = Button(self.frame,text="Refresh",command=self.entryValue).pack(side = LEFT)
 
 
 	def delete(self):
-		self.connected.destroy()
 		self.frame.destroy()
 
 	def popup(self):

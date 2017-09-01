@@ -34,16 +34,14 @@ def convert():
 		btn_text.set("Start Server")
 
 		#delete Connection obj
-		Con.CONNECTION_DICT = {Con.server_socket:"Master"}	
-		#Con.loop_continue = False
 		for x in Con.player:
-			Con.player[x].delete()
-		Con.player={}
+			if type(Con.player[x]) != type('a'):
+				Con.player[x].delete()
+		Con.player = {Con.server_socket:"Master"}
 		ConThread.stop()
 		
 	else:
-		btn_text.set("Close Server")
-		#Con,ConThread = CreateCon()	
+		btn_text.set("Close Server")	
 		ConThread = myThread(Con)
 		ConThread.start()
 		print("Waiting")
@@ -53,9 +51,21 @@ def convert():
 if __name__ == "__main__":
 	win = Tk()
 	main_frame = Frame(win)
-	main_frame.grid()
+	main_frame.pack()
+	main_frame_player = LabelFrame(win,text="連線用戶",foreground='blue')
+	main_frame_player.pack(fill='x',padx=10,pady=8)
+	
+	main_frame_player_box = LabelFrame(main_frame_player)
+	main_frame_player_box.pack(fill='x',padx=10,pady=8)
+
+	delete_button = Button(main_frame_player_box,text = "踢除").pack(side = RIGHT)
+	message_button = Button(main_frame_player_box,text="傳送").pack(side = RIGHT)
+	mes = StringVar()
+	message_textbox = Entry(main_frame_player_box,width=16,textvariable = mes).pack(side = RIGHT)
+	message_label1 = Label(main_frame_player_box,text="勾選以下用戶做操作:").pack(side = LEFT)
 	#create connection obj
-	Con = ServerConnection(win)
+
+	Con = ServerConnection(main_frame_player)
 	Con.OpenServerSocket()
 
 	#Font setting
@@ -66,6 +76,7 @@ if __name__ == "__main__":
 	StartServerBtn.pack(side = LEFT)
 	ExitBtn = Button(main_frame,text = "結束", command = lambda: Exit(win),font = helv36)
 	ExitBtn.pack(side = RIGHT)
+
 	
 
 	#window size setting
