@@ -9,6 +9,9 @@ class Player(object):
 		self.name = name
 		self.frame = LabelFrame(self.root,text = self.name,foreground = 'blue')
 		self.frame.pack(fill='x',padx=10,pady=8)
+
+		self.CheckVar = IntVar()
+		self.C1 = Checkbutton(self.frame, variable = self.CheckVar,onvalue = 1, offvalue = 0).pack(side = LEFT)
 		#self.connected = Label(self.frame, text = self.name + ' 已連線').pack(side = LEFT)
 		self.SetColorB=Button(self.frame,text="Set color",command=self.popup).pack(side = LEFT)
 

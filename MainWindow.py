@@ -1,5 +1,6 @@
 from tkinter import *	
 import tkinter.font as font
+from tkinter.scrolledtext import *
 from threading import Thread
 import threading,os
 from Connection import *
@@ -23,7 +24,6 @@ class myThread(Thread):
 		return self._stop_event.is_set()
 
 def Exit(r):
-	#sys.exit(0)
 	os._exit(1)
 	r.destroy()
 	
@@ -46,27 +46,50 @@ def convert():
 		ConThread.start()
 		print("Waiting")
 	count=count+1
+
+def kick(Con):
+	for idx in list(Con.player):
+		if type(Con.player[idx]) != type('a'):
+			if Con.player[idx].CheckVar.get():
+				Con.DELETE(idx)
+				
+def transmit(Con,mes):
+	tmp_message = mes.get()
+	for idx in list(Con.player):
+		if type(Con.player[idx]) != type('a'):
+			if Con.player[idx].CheckVar.get():
+				Con.ser_send_data(idx,tmp_message)
+				mes.set('')
 	
 
 if __name__ == "__main__":
 	win = Tk()
+
+
 	main_frame = Frame(win)
 	main_frame.pack()
-	main_frame_player = LabelFrame(win,text="連線用戶",foreground='blue')
-	main_frame_player.pack(fill='x',padx=10,pady=8)
+
+	main_frame_chat = LabelFrame(win ,bg = '#a3a8a7')
+	main_frame_chat.pack(fill='x',padx=10,pady=8)
+	chatbox = ScrolledText(main_frame_chat,height = 15)
+	chatbox.pack(padx=10,pady=8)
+	chatboxbt = Button(win , text = 'clear' ,command=lambda: chatbox.delete(1.0,END)).pack()
+	#chatbox.insert(INSERT, 'TEST\n')
+
+	main_frame_player = LabelFrame(win,text = "連線玩家",foreground = 'blue')
+	main_frame_player.pack(fill='x',padx=10,pady=2)
 	
 	main_frame_player_box = LabelFrame(main_frame_player)
 	main_frame_player_box.pack(fill='x',padx=10,pady=8)
 
-	delete_button = Button(main_frame_player_box,text = "踢除").pack(side = RIGHT)
-	message_button = Button(main_frame_player_box,text="傳送").pack(side = RIGHT)
-	mes = StringVar()
-	message_textbox = Entry(main_frame_player_box,width=16,textvariable = mes).pack(side = RIGHT)
-	message_label1 = Label(main_frame_player_box,text="勾選以下用戶做操作:").pack(side = LEFT)
 	#create connection obj
-
-	Con = ServerConnection(main_frame_player)
+	Con = ServerConnection(main_frame_player , chatbox)
 	Con.OpenServerSocket()
+	mes = StringVar()
+	delete_button = Button(main_frame_player_box, text = "踢除" , command = lambda: kick(Con)).pack(side = RIGHT)
+	message_button = Button(main_frame_player_box, text="傳送" , command = lambda: transmit(Con,mes)).pack(side = RIGHT)	
+	message_textbox = Entry(main_frame_player_box, width=16, textvariable = mes).pack(side = RIGHT)
+	message_label1 = Label(main_frame_player_box,text="勾選以下用戶做操作:").pack(side = LEFT)	
 
 	#Font setting
 	helv36 = font.Font(family='Helvetica', size=18, weight=font.BOLD)
@@ -87,7 +110,7 @@ if __name__ == "__main__":
 	hs = win.winfo_screenheight() # height of the screen
 	# calculate x and y coordinates for the Tk root window
 	x = (ws/2) - (500/2)
-	y = (hs/2) - (500/2)
+	y = (hs/2) - (600/2)
 	# set the dimensions of the screen and where it is placed
-	win.geometry('%dx%d+%d+%d' % (500, 500, x, y))
+	win.geometry('%dx%d+%d+%d' % (500, 600, x, y))
 	win.mainloop()

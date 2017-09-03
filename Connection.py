@@ -1,33 +1,61 @@
 import socket, select
 from tkinter import *
+from tkinter.scrolledtext import *
 from Player import *
 
 class ServerConnection:
-	def __init__(self,root):
+	def __init__(self,root,chatbox):
 		self.root = root
 		self.RECV_BUFFER = 4096 
 		self.PORT = 5000
 		self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.player = {}
+		self.chatbox = chatbox
+
+	def ser_send_data(self,sock,message):
+		#Sending message from server
+		tmp_message = 'Master|' + message + '\r'
+		print(message)
+		try :
+			sock.send(tmp_message.encode(encoding='utf-8'))
+			#Print to the window
+			self.chatbox.insert(INSERT, 'Master send to %s : %s\n' %(self.player[sock].name,message))
+			self.chatbox.see(END)
+		except :
+			# broken socket connection may be, chat client pressed ctrl+c for example
+			self.DELETE(sock)
 
 	def send_data(self,sock, message):
-		#Do not send the message to master socket and the client who has send us the message
+		#Do not send the message to master socket and the client who has send us the message		
 		for socket in self.player:
 			if socket != self.server_socket and socket != sock:
 				Name = message[0:message.index('|')]
 				if self.player[socket].name == Name:    
 					try :
-						socket.send(message.encode(encoding='utf-8'))
+						tmp_message = self.player[sock].name + message[message.index('|'):] # src name
+						socket.send(tmp_message.encode(encoding='utf-8'))
+						'''
+						#Print to the window
+						self.chatbox.insert(INSERT, '%s send to %s : %s\n' %(self.player[sock].name,Name,message[message.index('|')+1:]))
+						self.chatbox.see(END)
+						'''
 					except :
 						# broken socket connection may be, chat client pressed ctrl+c for example
 						self.DELETE(socket)
 	#Function to broadcast chat messages to all connected clients
 	def broadcast_data (self,sock, message):
 		#Do not send the message to master socket and the client who has send us the message
+		
 		for socket in self.player:
 			if socket != self.server_socket and socket != sock :
 				try :
-					socket.send(message.encode(encoding='utf-8'))	                
+					tmp_message = self.player[sock].name + message[message.index('|'):] # src name
+					socket.send(tmp_message.encode(encoding='utf-8'))
+					'''	
+					#Print to the window
+					self.chatbox.insert(INSERT, '%s Broadcast : %s\n' %(self.player[sock].name,message[message.index('|')+1:]))
+					self.chatbox.see(END)                
+					'''
 				except :
 					# broken socket connection may be, chat client pressed ctrl+c for example
 					self.DELETE(socket)
@@ -67,11 +95,11 @@ class ServerConnection:
 			            # a "Connection reset by peer" exception will be thrown
 			            data = sock.recv(self.RECV_BUFFER).decode('utf-8')
 			            #regist id
-			            if 'Register:' in data:
+			            if 'Register|' in data:
 			                sock.send("Master|Client hello!\r".encode(encoding='utf-8'))
-			                self.broadcast_data(sock,data[9:]+'Join!\r')
 			                #create player obj
 			                self.player[sock] =  Player(self.root,data[9:])
+			                self.broadcast_data(sock,data + ' Join!\r')
 			                print(self.player[sock])
 
 			            elif 'Broadcast' in data:
@@ -82,7 +110,6 @@ class ServerConnection:
 			                self.send_data(sock,data+'\r')
 			                
 			        except:
-			            print(self.player[sock])
 			            self.DELETE(sock)
 			            continue
 		self.server_socket.close()
@@ -91,7 +118,9 @@ class ServerConnection:
 	def DELETE(self,socket):
 		self.player[socket].delete()
 		del self.player[socket]
-		socket.close()
+		#socket.close()
+
+
 
 	
 
