@@ -4,7 +4,9 @@ from tkinter.scrolledtext import *
 from Player import *
 
 class ServerConnection:
-	def __init__(self,root,chatbox):
+	def __init__(self,root,chatbox,UP,DP):
+		self.UP = UP
+		self.DP = DP
 		self.root = root
 		self.RECV_BUFFER = 4096 
 		self.PORT = 5000
@@ -98,7 +100,7 @@ class ServerConnection:
 			            if 'Register|' in data:
 			                sock.send("Master|Client hello!\r".encode(encoding='utf-8'))
 			                #create player obj
-			                self.player[sock] =  Player(self.root,data[9:])
+			                self.player[sock] =  Player(self.root,data[9:],self.UP,self.DP)
 			                self.broadcast_data(sock,data + ' Join!\r')
 			                print(self.player[sock])
 

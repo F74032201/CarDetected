@@ -3,8 +3,10 @@ from SetColor import *
 
 class Player(object):
 	"""droottring for Player"""
-	def __init__(self, root,name):
+	def __init__(self, root,name,UP,DP):
 		super(Player, self).__init__()
+		self.UP = UP
+		self.DP = DP
 		self.root = root
 		self.name = name
 		self.frame = LabelFrame(self.root,text = self.name,foreground = 'blue')
