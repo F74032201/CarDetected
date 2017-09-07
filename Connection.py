@@ -101,6 +101,7 @@ class ServerConnection:
 			                sock.send("Master|Client hello!\r".encode(encoding='utf-8'))
 			                #create player obj
 			                self.player[sock] =  Player(self.root,data[9:],self.UP,self.DP)
+			                # self.player[sock].pos_thread.start()
 			                self.broadcast_data(sock,data + ' Join!\r')
 			                print(self.player[sock])
 
@@ -118,6 +119,7 @@ class ServerConnection:
 		print("s close")
 
 	def DELETE(self,socket):
+		self.player[socket].Connected = False
 		self.player[socket].delete()
 		del self.player[socket]
 		#socket.close()

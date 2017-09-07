@@ -37,9 +37,26 @@ class myThreadTransform(Thread):
 		self._stop_event = threading.Event()
 
 	def run(self):
+		cv2.namedWindow('UP')
+		show_flag = True
 		while True:
 			self.UP.RefreshResult()
-			self.UP.RefreshResult()
+			self.DP.RefreshResult()
+
+			if show_flag:
+				cv2.imshow('UP',self.UP.Result)
+				cv2.imshow('DP',self.DP.Result)
+			if cv2.waitKey(1) & 0xFF == ord('q'):
+				
+				show_flag = not show_flag
+				cv2.waitKey(1)
+				cv2.destroyWindow("UP")
+				cv2.destroyWindow("DP")
+				cv2.waitKey(1)
+				cv2.waitKey(1)
+				cv2.waitKey(1)
+				cv2.waitKey(1)
+
 
 	def stop(self):
 		print("Stop connection loop")
@@ -108,12 +125,14 @@ def refresh_4(UP,DP):
 def MazeColor(UP,DP):
 	UP.RefreshColor()
 	DP.RefreshColor()
+
 	print("refresh color")	
+	# DP.RefreshColor()
 
 def MazeUpdate(UP,DP,MazeUpdateBtn):
 	TransformThread = myThreadTransform(UP,DP)
 	TransformThread.start()
-	MazeUpdateBtn.config(state = DISABLE)
+	MazeUpdateBtn.config(state = "disable")
 
 
 
@@ -121,7 +140,7 @@ if __name__ == "__main__":
 	win = Tk()
 
 	#create camera obj
-	cap = cv2.VideoCapture(0)
+	cap = cv2.VideoCapture(1)
 	framethread = myThreadFrame(cap)
 	framethread.start()
 	UP = TransformMaze(framethread)
