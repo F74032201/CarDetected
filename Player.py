@@ -63,7 +63,7 @@ class Player(object):
 			self.FindPos(self.tmp_frame,(0,0))
 			print("1")
 			cv2.imshow('Set Color',self.tmp_frame)
-			self.tmp_frame = self.UP.framethread.frame
+			self.tmp_frame = self.DP.Result
 			print("2")
 			if cv2.waitKey(1) & 0xFF == ord('s'):
 				cv2.destroyWindow("Set Color")
@@ -114,6 +114,7 @@ class Player(object):
 		
 		
 		blurred = cv2.GaussianBlur(dilation, (5, 5), 0)
+		cv2.imshow("mask",blurred)
 
 		# find contours in the thresholded image
 		cnts = cv2.findContours(blurred.copy(), cv2.RETR_EXTERNAL,

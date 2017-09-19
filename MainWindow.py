@@ -74,7 +74,9 @@ class myThreadFrame(Thread):
 
 	def run(self):
 		while True:
-			ret, self.frame = self.cap.read()
+			ret, Frame = self.cap.read()
+
+			self.frame = cv2.resize(Frame,None,fx=1.6, fy=1.6, interpolation = cv2.INTER_CUBIC)
 			if ret == False:
 				break
 						
@@ -107,6 +109,10 @@ def kick(Con):
 	for idx in list(Con.player):
 		if type(Con.player[idx]) != type('a'):
 			if Con.player[idx].CheckVar.get():
+				# Con.player[idx].Connected = False
+				# Con.player[idx].delete()
+				# del Con.player[idx]
+		
 				Con.DELETE(idx)
 				
 def transmit(Con,mes):

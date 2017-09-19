@@ -111,7 +111,7 @@ class TransformMaze(object):
 		    centres.append((int(moments['m10']/moments['m00']), int(moments['m01']/moments['m00'])))
 		for x in range(0,len(centres)):
 			cv2.circle(self.dst, centres[x], 5, (0, 0, 150), -1)
-
+		print(centres)
 		if len(centres)==4:
 		    self.lastpoint = centres
 
@@ -119,3 +119,4 @@ class TransformMaze(object):
 		    centres = self.lastpoint
 
 		self.Points = centres
+

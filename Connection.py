@@ -122,7 +122,7 @@ class ServerConnection:
 		self.player[socket].Connected = False
 		self.player[socket].delete()
 		del self.player[socket]
-		#socket.close()
+		socket.close()
 
 
 
