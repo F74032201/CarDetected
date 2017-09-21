@@ -122,10 +122,11 @@ class ServerConnection:
 		print("s close")
 
 	def DELETE(self,socket):
-		self.player[socket].Connected = False
-		self.player[socket].delete()
-		del self.player[socket]
-		socket.close()
+		if type(self.player[socket]) != type('a'):
+			self.player[socket].Connected = False
+			self.player[socket].delete()
+			del self.player[socket]
+			socket.close()
 
 
 
