@@ -21,8 +21,8 @@ class ServerConnection:
 		try :
 			sock.send(tmp_message.encode(encoding='utf-8'))
 			#Print to the window
-			self.chatbox.insert(INSERT, 'Master send to %s : %s\n' %(self.player[sock].name,message))
-			self.chatbox.see(END)
+			# self.chatbox.insert(INSERT, 'Master send to %s : %s\n' %(self.player[sock].name,message))
+			# self.chatbox.see(END)
 		except :
 			# broken socket connection may be, chat client pressed ctrl+c for example
 			self.DELETE(sock)
@@ -107,7 +107,10 @@ class ServerConnection:
 
 			            elif 'Broadcast' in data:
 			                self.broadcast_data(sock,data+'\r') 
-			                
+
+			            elif 'Position' in data:
+			            	self.ser_send_data(sock,str(self.player[sock].pos)+"(256,256)")
+
 			            #sent to specific client   
 			            elif '|' in data:
 			                self.send_data(sock,data+'\r')
