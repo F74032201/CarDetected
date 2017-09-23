@@ -37,9 +37,26 @@ class myThreadTransform(Thread):
 		self._stop_event = threading.Event()
 
 	def run(self):
+		cv2.namedWindow('UP')
+		show_flag = True
 		while True:
 			self.UP.RefreshResult()
-			self.UP.RefreshResult()
+			self.DP.RefreshResult()
+
+			if show_flag:
+				cv2.imshow('UP',self.UP.Result)
+				cv2.imshow('DP',self.DP.Result)
+			if cv2.waitKey(1) & 0xFF == ord('q'):
+				
+				show_flag = not show_flag
+				cv2.waitKey(1)
+				cv2.destroyWindow("UP")
+				cv2.destroyWindow("DP")
+				cv2.waitKey(1)
+				cv2.waitKey(1)
+				cv2.waitKey(1)
+				cv2.waitKey(1)
+
 
 	def stop(self):
 		print("Stop connection loop")
@@ -57,7 +74,9 @@ class myThreadFrame(Thread):
 
 	def run(self):
 		while True:
-			ret, self.frame = self.cap.read()
+			ret, Frame = self.cap.read()
+
+			self.frame = cv2.resize(Frame,None,fx=1, fy=1, interpolation = cv2.INTER_CUBIC)
 			if ret == False:
 				break
 						
@@ -90,15 +109,21 @@ def kick(Con):
 	for idx in list(Con.player):
 		if type(Con.player[idx]) != type('a'):
 			if Con.player[idx].CheckVar.get():
+				# Con.player[idx].Connected = False
+				# Con.player[idx].delete()
+				# del Con.player[idx]
+		
 				Con.DELETE(idx)
 				
-def transmit(Con,mes):
+def transmit(Con,mes,chatbox):
 	tmp_message = mes.get()
 	for idx in list(Con.player):
 		if type(Con.player[idx]) != type('a'):
 			if Con.player[idx].CheckVar.get():
 				Con.ser_send_data(idx,tmp_message)
 				mes.set('')
+				chatbox.insert(INSERT, 'Master send to %s : %s\n' %(Con.player[idx].name,tmp_message))
+				chatbox.see(END)
 	
 def refresh_4(UP,DP):
 	UP.RefreshPoints()
@@ -108,20 +133,49 @@ def refresh_4(UP,DP):
 def MazeColor(UP,DP):
 	UP.RefreshColor()
 	DP.RefreshColor()
+
 	print("refresh color")	
+	# DP.RefreshColor()
 
 def MazeUpdate(UP,DP,MazeUpdateBtn):
 	TransformThread = myThreadTransform(UP,DP)
 	TransformThread.start()
-	MazeUpdateBtn.config(state = DISABLE)
+	MazeUpdateBtn.config(state = "disable")
 
+def DisplayCar():
+	global Con
+	cv2.namedWindow('Car Display')
+
+	while True:
+		mapp = cv2.imread("666.jpg")
+		for idx in list(Con.player):
+			if type(Con.player[idx]) != type('a'):
+				if Con.player[idx].CheckVar.get():
+					print(Con.player[idx].Color)
+					cv2.circle(mapp, Con.player[idx].pos, 5, Con.player[idx].Color, -1)
+		
+		cv2.imshow("Car Display",mapp)
+		print(Con.player[idx].pos)
+		print(Con.player[idx].Color)
+		
+		if cv2.waitKey(1) & 0xFF == ord('d'):
+			cv2.destroyWindow("Car Display")
+			cv2.waitKey(1)
+			cv2.waitKey(1)
+			cv2.waitKey(1)
+			cv2.waitKey(1)
+			break
 
 
 if __name__ == "__main__":
 	win = Tk()
 
 	#create camera obj
-	cap = cv2.VideoCapture(0)
+	cap = cv2.VideoCapture(1)
+
+	cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1080);
+	cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720);
+
 	framethread = myThreadFrame(cap)
 	framethread.start()
 	UP = TransformMaze(framethread)
@@ -148,9 +202,11 @@ if __name__ == "__main__":
 
 	main_frame_chat = LabelFrame(win ,bg = '#a3a8a7')
 	main_frame_chat.pack(fill='x',padx=10,pady=8)
-	chatbox = ScrolledText(main_frame_chat,height = 15)
+	chatbox = ScrolledText(main_frame_chat,height = 5)
 	chatbox.pack(padx=10,pady=8)
 	chatboxbt = Button(win , text = 'clear' ,command=lambda: chatbox.delete(1.0,END)).pack()
+
+	# printbt = Button(win , text = 'display' ,command=lambda: DisplayCar() ).pack()
 
 	main_frame_player = LabelFrame(win,text = "連線玩家",foreground = 'blue')
 	main_frame_player.pack(fill='x',padx=10,pady=2)
@@ -158,19 +214,26 @@ if __name__ == "__main__":
 	main_frame_player_box = LabelFrame(main_frame_player)
 	main_frame_player_box.pack(fill='x',padx=10,pady=8)
 
+	main_frame_player_team = LabelFrame(main_frame_player)
+	main_frame_player_team.pack(fill='x',padx=5,pady=2)
+
+	main_frame_player_teamA = LabelFrame(main_frame_player_team,text = "Team A",foreground="red")
+	main_frame_player_teamA.pack(side = LEFT)
+
+	main_frame_player_teamB = LabelFrame(main_frame_player_team,text = "Team B",foreground="red")
+	main_frame_player_teamB.pack(side = RIGHT)
 	
 	#create connection obj
-	Con = ServerConnection(main_frame_player , chatbox , UP, DP)
+	Con = ServerConnection(main_frame_player_teamA , main_frame_player_teamB , chatbox , UP, DP)
 	Con.OpenServerSocket()
 
 	mes = StringVar()
 	refresh_4point = Button(main_frame_player_box , text = "攝影機晃到" , command = lambda:refresh_4(UP,DP)).pack(side = RIGHT)
 	delete_button = Button(main_frame_player_box, text = "踢除" , command = lambda: kick(Con)).pack(side = RIGHT)
-	message_button = Button(main_frame_player_box, text="傳送" , command = lambda: transmit(Con,mes)).pack(side = RIGHT)	
+	message_button = Button(main_frame_player_box, text="傳送" , command = lambda: transmit(Con,mes,chatbox)).pack(side = RIGHT)	
 	message_textbox = Entry(main_frame_player_box, width=16, textvariable = mes).pack(side = RIGHT)
 	message_label1 = Label(main_frame_player_box,text="勾選以下用戶做操作:").pack(side = LEFT)	
 
-	
 
 	
 
@@ -181,8 +244,8 @@ if __name__ == "__main__":
 	ws = win.winfo_screenwidth() # width of the screen
 	hs = win.winfo_screenheight() # height of the screen
 	# calculate x and y coordinates for the Tk root window
-	x = (ws/2) - (600/2)
+	x = (ws/2) - (950/2)
 	y = (hs/2) - (600/2)
 	# set the dimensions of the screen and where it is placed
-	win.geometry('%dx%d+%d+%d' % (600, 600, x, y))
+	win.geometry('%dx%d+%d+%d' % (950, 600, x, y))
 	win.mainloop()

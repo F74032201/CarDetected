@@ -45,27 +45,29 @@ class TransformMaze(object):
 
 			self.dst = self.framethread.frame
 			self.RefreshPoints()
-			# output = np.zeros((512,512,3), np.uint8)
-			# newsrc = cv2.resize(mapp,None,fx=(512/514), fy=(512/514), interpolation = cv2.INTER_CUBIC)
-			# cv2.circle(output, car.pos, 5, (0, 0, 150), -1)
 			
 			if show_flag :
 				cv2.imshow('Set Color',self.dst)
 
 			if cv2.waitKey(1) & 0xFF == ord('q'):
-				cv2.destroyWindow("Set Color")
+				
 				show_flag = False
-				break
 
-		print("fuck")
-		# When everything done, release the capture
+				break
+		cv2.waitKey(1)
+		cv2.destroyWindow("Set Color")
+		cv2.waitKey(1)
+		cv2.waitKey(1)
+		cv2.waitKey(1)
+		cv2.waitKey(1)
+
 
 	def on_mouse(self,event,x,y,flags,param):
 		
 		if event == cv2.EVENT_LBUTTONDOWN:
 			
-			cv2.circle(self.dst,(x,y),5,[255,255,0],2)
-			print(self.Color)
+			#cv2.circle(self.dst,(x,y),5,[255,255,0],2)
+			#print(self.Color)
 			self.Color = [int(self.dst[y,x][0]),int(self.dst[y,x][1]),int(self.dst[y,x][2])]
 			print(self.Color)
 
@@ -82,7 +84,7 @@ class TransformMaze(object):
 		low = hue-10 if hue-10 > -1 else 0
 		high = hue+10 if hue+10 < 256 else 255
 		#set bound
-		lower_range = np.array([low, 50, 40], dtype=np.uint8)
+		lower_range = np.array([low, 100, 100], dtype=np.uint8)
 		upper_range = np.array([high, 255, 255], dtype=np.uint8)
 		#make a mask
 		mask = cv2.inRange(hsv, lower_range, upper_range)
@@ -109,7 +111,7 @@ class TransformMaze(object):
 		    centres.append((int(moments['m10']/moments['m00']), int(moments['m01']/moments['m00'])))
 		for x in range(0,len(centres)):
 			cv2.circle(self.dst, centres[x], 5, (0, 0, 150), -1)
-
+		print(centres)
 		if len(centres)==4:
 		    self.lastpoint = centres
 
@@ -117,3 +119,4 @@ class TransformMaze(object):
 		    centres = self.lastpoint
 
 		self.Points = centres
+

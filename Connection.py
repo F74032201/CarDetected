@@ -4,10 +4,11 @@ from tkinter.scrolledtext import *
 from Player import *
 
 class ServerConnection:
-	def __init__(self,root,chatbox,UP,DP):
+	def __init__(self,rootA,rootB,chatbox,UP,DP):
 		self.UP = UP
 		self.DP = DP
-		self.root = root
+		self.rootA = rootA
+		self.rootB = rootB
 		self.RECV_BUFFER = 4096 
 		self.PORT = 5000
 		self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -21,8 +22,8 @@ class ServerConnection:
 		try :
 			sock.send(tmp_message.encode(encoding='utf-8'))
 			#Print to the window
-			self.chatbox.insert(INSERT, 'Master send to %s : %s\n' %(self.player[sock].name,message))
-			self.chatbox.see(END)
+			# self.chatbox.insert(INSERT, 'Master send to %s : %s\n' %(self.player[sock].name,message))
+			# self.chatbox.see(END)
 		except :
 			# broken socket connection may be, chat client pressed ctrl+c for example
 			self.DELETE(sock)
@@ -97,16 +98,23 @@ class ServerConnection:
 			            # a "Connection reset by peer" exception will be thrown
 			            data = sock.recv(self.RECV_BUFFER).decode('utf-8')
 			            #regist id
-			            if 'Register|' in data:
+			            if 'Register' in data:
 			                sock.send("Master|Client hello!\r".encode(encoding='utf-8'))
 			                #create player obj
-			                self.player[sock] =  Player(self.root,data[9:],self.UP,self.DP)
+			                if data[8] == 'A':
+			                	self.player[sock] =  Player(self.rootA,data[10:],self.UP,self.DP)
+			                elif data[8] == 'B':
+			                	self.player[sock] =  Player(self.rootB,data[10:],self.UP,self.DP)
+			                # self.player[sock].pos_thread.start()
 			                self.broadcast_data(sock,data + ' Join!\r')
 			                print(self.player[sock])
 
 			            elif 'Broadcast' in data:
 			                self.broadcast_data(sock,data+'\r') 
-			                
+
+			            elif 'Position' in data:
+			            	self.ser_send_data(sock,str(self.player[sock].pos)+"(256,256)")
+
 			            #sent to specific client   
 			            elif '|' in data:
 			                self.send_data(sock,data+'\r')
@@ -118,9 +126,11 @@ class ServerConnection:
 		print("s close")
 
 	def DELETE(self,socket):
-		self.player[socket].delete()
-		del self.player[socket]
-		#socket.close()
+		if type(self.player[socket]) != type('a'):
+			self.player[socket].Connected = False
+			self.player[socket].delete()
+			del self.player[socket]
+			socket.close()
 
 
 
