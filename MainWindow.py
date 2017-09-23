@@ -5,6 +5,7 @@ from threading import Thread
 from Transform import *
 import threading,os
 from Connection import *
+from TowerGame import *
 import numpy as np
 import cv2
 
@@ -79,7 +80,20 @@ class myThreadFrame(Thread):
 			self.frame = cv2.resize(Frame,None,fx=1, fy=1, interpolation = cv2.INTER_CUBIC)
 			if ret == False:
 				break
-						
+
+class GameThread(Thread):
+	def __init__(self, Con):
+		super(GameThread, self).__init__()
+		self.Con = Con
+		self.App = App(self.Con)
+		
+	def run(self):
+		for idx in list(self.Con.player):
+			if type(self.Con.player[idx]) != type('a'):
+				self.Con.player[idx].game_init()
+				ChangeColor(self.Con.player[idx].image,self.Con.player[idx].Color)
+		self.App.on_execute()
+					
 
 def Exit(r):
 	os._exit(1)
@@ -206,7 +220,9 @@ if __name__ == "__main__":
 	chatbox.pack(padx=10,pady=8)
 	chatboxbt = Button(win , text = 'clear' ,command=lambda: chatbox.delete(1.0,END)).pack()
 
-	# printbt = Button(win , text = 'display' ,command=lambda: DisplayCar() ).pack()
+
+
+	
 
 	main_frame_player = LabelFrame(win,text = "連線玩家",foreground = 'blue')
 	main_frame_player.pack(fill='x',padx=10,pady=2)
@@ -227,7 +243,7 @@ if __name__ == "__main__":
 	message_label1 = Label(main_frame_player_box,text="勾選以下用戶做操作:").pack(side = LEFT)	
 
 	
-
+	gamebt = Button(win , text = 'Game Start' ,command=GameThread(Con).start ).pack()
 	
 
 	#window size setting
