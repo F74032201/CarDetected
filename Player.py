@@ -44,6 +44,11 @@ class Player(object):
 		self.RGB = Label(self.frame,text = 'color')
 		self.RGB.pack(side = RIGHT)
 		self.startbt = Button(self.frame, text = "Start", command = self.pos_thread.start).pack(side = LEFT)
+		self.HighStr = StringVar()
+		self.HighBtn = Button(self.frame,text = "設定車高",command =self.SetCarHigh).pack(side = RIGHT)
+		self.SetHighTextBox = Entry(self.frame,width = 8,textvariable = self.HighStr).pack(side = RIGHT)
+		
+		
 		self.CarPosStr = StringVar()
 		self.CarPosStr.set(str(self.pos))
 		self.CarPos = Label(self.frame,textvariable = self.CarPosStr).pack(side = LEFT)
@@ -72,6 +77,9 @@ class Player(object):
 				cv2.waitKey(1)
 				cv2.waitKey(1)
 				break
+		#Set label color
+		self.RGB.config(bg = '#'+str(rgb(self.Color[2],self.Color[1],self.Color[0]).hex))
+
 		
 	def on_mouse(self,event,x,y,flags,param):
 		
@@ -81,8 +89,7 @@ class Player(object):
 			#print(self.Color)
 			self.Color = [int(self.tmp_frame[y,x][0]),int(self.tmp_frame[y,x][1]),int(self.tmp_frame[y,x][2])]
 			print(self.Color)
-			#Set label color
-			# self.RGB.config(bg = '#'+str(rgb(self.Color[0],self.Color[1],self.Color[2]).hex))
+			
 
 	def FindPos(self,src,lastcar):
 		# print("in Find")
@@ -114,7 +121,7 @@ class Player(object):
 		
 		
 		blurred = cv2.GaussianBlur(dilation, (5, 5), 0)
-		cv2.imshow("mask",blurred)
+		# cv2.imshow("mask",blurred)
 
 		# find contours in the thresholded image
 		cnts = cv2.findContours(blurred.copy(), cv2.RETR_EXTERNAL,
@@ -156,6 +163,10 @@ class Player(object):
 
 			self.pos = (int(lastX),int(lastY))
 			self.CarPosStr.set(str(self.pos))
-			print(self.pos)
+			# print(self.pos)
+
+	def SetCarHigh(self):
+		self.carHigh = int(self.HighStr.get())
+		print("%s's car high set to %d" %(self.name,self.carHigh))
 
 

@@ -1,0 +1,4 @@
+colors.py==0.2.2
+imutils==0.4.3
+numpy==1.13.1
+pygame==1.9.3
