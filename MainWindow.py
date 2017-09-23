@@ -193,8 +193,9 @@ if __name__ == "__main__":
 	framethread = myThreadFrame(cap)
 	framethread.start()
 	UP = TransformMaze(framethread)
+	UP.Color = [36, 11, 185]
 	DP = TransformMaze(framethread)
-
+	DP.Color = [137, 76, 10]
 	main_frame = Frame(win)
 	main_frame.pack()
 
@@ -230,9 +231,17 @@ if __name__ == "__main__":
 	main_frame_player_box = LabelFrame(main_frame_player)
 	main_frame_player_box.pack(fill='x',padx=10,pady=8)
 
+	main_frame_player_team = LabelFrame(main_frame_player)
+	main_frame_player_team.pack(fill='x',padx=5,pady=2)
+
+	main_frame_player_teamA = LabelFrame(main_frame_player_team,text = "Team A",foreground="red")
+	main_frame_player_teamA.pack(side = LEFT)
+
+	main_frame_player_teamB = LabelFrame(main_frame_player_team,text = "Team B",foreground="red")
+	main_frame_player_teamB.pack(side = RIGHT)
 	
 	#create connection obj
-	Con = ServerConnection(main_frame_player , chatbox , UP, DP)
+	Con = ServerConnection(main_frame_player_teamA , main_frame_player_teamB , chatbox , UP, DP)
 	Con.OpenServerSocket()
 
 	mes = StringVar()
@@ -242,9 +251,7 @@ if __name__ == "__main__":
 	message_textbox = Entry(main_frame_player_box, width=16, textvariable = mes).pack(side = RIGHT)
 	message_label1 = Label(main_frame_player_box,text="勾選以下用戶做操作:").pack(side = LEFT)	
 
-	
 	gamebt = Button(win , text = 'Game Start' ,command=GameThread(Con).start ).pack()
-	
 
 	#window size setting
 	w = win.winfo_reqwidth() # width for the Tk root
@@ -253,8 +260,8 @@ if __name__ == "__main__":
 	ws = win.winfo_screenwidth() # width of the screen
 	hs = win.winfo_screenheight() # height of the screen
 	# calculate x and y coordinates for the Tk root window
-	x = (ws/2) - (600/2)
+	x = (ws/2) - (950/2)
 	y = (hs/2) - (600/2)
 	# set the dimensions of the screen and where it is placed
-	win.geometry('%dx%d+%d+%d' % (600, 600, x, y))
+	win.geometry('%dx%d+%d+%d' % (950, 600, x, y))
 	win.mainloop()

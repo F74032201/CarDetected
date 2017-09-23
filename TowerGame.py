@@ -15,6 +15,9 @@ def ChangeColor(image,color):
 			if image.get_at((x, y))[0] == o_r and image.get_at((x, y))[1] == o_g and image.get_at((x, y))[2] == o_b:
 				a = image.get_at((x, y))[3]
 				image.set_at((x, y), pygame.Color(r, g, b, a))
+			else:
+				image.set_at((x, y), pygame.Color(0, 0, 0, 0))
+	image.set_colorkey( (0,0,0), RLEACCEL )
 	   
 
 class Game:
@@ -44,9 +47,9 @@ class Tower:
 	def __init__(self,x,y):
 		self.x = x * self.step + self.step/4
 		self.y = y * self.step + self.step/4
-		self.image = pygame.image.load('img/tower_w.png').convert()
+		self.image = pygame.image.load('img/tower.png').convert()
 		self.image = pygame.transform.scale(self.image,(self.picwidth,self.picwidth))
-	
+		self.image.set_colorkey( (0,0,0), RLEACCEL )
 	def draw(self, surface):
 		surface.blit(self.image,(self.x , self.y))
 
@@ -128,6 +131,7 @@ class App:
 		
 	def on_cleanup(self):
 		pygame.quit()
+		print("pygame.quit()")
 
 	def on_execute(self):
 		if self.on_init() == False:
@@ -162,6 +166,7 @@ class App:
 				self.Con.player[2].moveDown()
 
 			if (keys[pygame.K_ESCAPE]):
+				print("esc")
 				self._running = False
 
 			self.on_loop()
@@ -169,6 +174,7 @@ class App:
 			
 			time.sleep(100.0 / 1000.0)
 		self.on_cleanup()
+
 
 # if __name__ == "__main__" :
 # 	theApp = App()

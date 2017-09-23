@@ -4,10 +4,11 @@ from tkinter.scrolledtext import *
 from Player import *
 
 class ServerConnection:
-	def __init__(self,root,chatbox,UP,DP):
+	def __init__(self,rootA,rootB,chatbox,UP,DP):
 		self.UP = UP
 		self.DP = DP
-		self.root = root
+		self.rootA = rootA
+		self.rootB = rootB
 		self.RECV_BUFFER = 4096 
 		self.PORT = 5000
 		self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -97,10 +98,13 @@ class ServerConnection:
 			            # a "Connection reset by peer" exception will be thrown
 			            data = sock.recv(self.RECV_BUFFER).decode('utf-8')
 			            #regist id
-			            if 'Register|' in data:
+			            if 'Register' in data:
 			                sock.send("Master|Client hello!\r".encode(encoding='utf-8'))
 			                #create player obj
-			                self.player[sock] =  Player(self.root,data[9:],self.UP,self.DP)
+			                if data[8] == 'A':
+			                	self.player[sock] =  Player(self.rootA,data[10:],self.UP,self.DP)
+			                elif data[8] == 'B':
+			                	self.player[sock] =  Player(self.rootB,data[10:],self.UP,self.DP)
 			                # self.player[sock].pos_thread.start()
 			                self.broadcast_data(sock,data + ' Join!\r')
 			                print(self.player[sock])

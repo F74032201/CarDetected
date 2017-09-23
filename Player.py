@@ -49,6 +49,11 @@ class Player(object):
 		self.RGB = Label(self.frame,text = 'color')
 		self.RGB.pack(side = RIGHT)
 		self.startbt = Button(self.frame, text = "Start", command = self.pos_thread.start).pack(side = LEFT)
+		self.HighStr = StringVar()
+		self.HighBtn = Button(self.frame,text = "設定車高",command =self.SetCarHigh).pack(side = RIGHT)
+		self.SetHighTextBox = Entry(self.frame,width = 8,textvariable = self.HighStr).pack(side = RIGHT)
+		
+		
 		self.CarPosStr = StringVar()
 		self.CarPosStr.set(str(self.pos))
 		self.CarPos = Label(self.frame,textvariable = self.CarPosStr).pack(side = LEFT)
@@ -220,3 +225,9 @@ class Player(object):
 	def draw(self, surface):
 		print(self.x,self.y)
 		surface.blit(self.image,(self.x,self.y))
+
+	def SetCarHigh(self):
+		self.carHigh = int(self.HighStr.get())
+		print("%s's car high set to %d" %(self.name,self.carHigh))
+
+
