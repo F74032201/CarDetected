@@ -23,7 +23,7 @@ class Player(object):
 
 		self.root = root
 		self.name = name
-		self.pos = [0,0]
+		self.pos = (-1,-1)
 		self.Color = [0,0,0]
 
 		#control the thread to be over

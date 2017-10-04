@@ -46,7 +46,7 @@ class myThreadTransform(Thread):
 			if show_flag:
 				cv2.imshow('UP',self.UP.Result)
 				cv2.imshow('DP',self.DP.Result)
-			if cv2.waitKey(1) & 0xFF == ord('q'):
+			if cv2.waitKey(1) & 0xFF == ord('w'):
 				
 				show_flag = not show_flag
 				cv2.waitKey(1)
