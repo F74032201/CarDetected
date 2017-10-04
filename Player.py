@@ -5,6 +5,8 @@ import numpy as np
 import cv2
 from operator import itemgetter
 import imutils
+from pygame.locals import *
+import pygame
 
 class PositionThread(Thread):
 	def __init__(self, player):
@@ -23,8 +25,12 @@ class Player(object):
 
 		self.root = root
 		self.name = name
+
 		self.pos = (-1,-1)
+		self.x = 0
+		self.y = 0
 		self.Color = [0,0,0]
+		self.team = "A"
 
 		#control the thread to be over
 		self.Connected = True
@@ -162,8 +168,64 @@ class Player(object):
 			lastY = (( Upos[1] * self.carHigh ) + (Dpos[1] * (self.wallHigh - self.carHigh))) / self.wallHigh
 
 			self.pos = (int(lastX),int(lastY))
+			self.x, self.y = self.pos
 			self.CarPosStr.set(str(self.pos))
 			# print(self.pos)
+
+	def game_init(self):
+		self.map_width = 512
+		self.map_height = 512
+		self.step = 32
+		self.picwidth =32
+		self.direction = 0
+		self.angle = 0
+		self.image = pygame.image.load("img/car.png").convert()
+		self.image = pygame.transform.scale(self.image,(self.picwidth,self.picwidth))
+
+	def update(self):
+
+		#update position of player
+
+		if self.direction == 0:
+			self.x += 10
+			self.angle = 0
+
+		if self.direction == 1:
+			self.x -= 10
+			self.angle = 180
+
+		if self.direction == 2:
+			self.y -= 10
+			self.angle = 90
+
+		if self.direction == 3:
+			self.y += 10
+			self.angle = 270
+	
+		if self.x > self.map_width-self.picwidth:
+			self.x = self.map_width-self.picwidth
+		if self.x < 0:
+			self.x = 0
+		if self.y > self.map_height-self.picwidth:
+			self.y = self.map_height-self.picwidth
+		if self.y < 0:
+			self.y = 0
+
+	def moveRight(self):
+		self.direction = 0
+	
+	def moveLeft(self):
+		self.direction = 1
+	
+	def moveUp(self):
+		self.direction = 2
+
+	def moveDown(self):
+		self.direction = 3
+	
+	def draw(self, surface):
+		print(self.x,self.y)
+		surface.blit(self.image,(self.x,self.y))
 
 	def SetCarHigh(self):
 		self.carHigh = int(self.HighStr.get())
