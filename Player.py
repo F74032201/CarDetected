@@ -30,7 +30,7 @@ class Player(object):
 		self.x = 0
 		self.y = 0
 		self.Color = [0,0,0]
-		self.team = "A"
+		self.team = None
 
 		#control the thread to be over
 		self.Connected = True
