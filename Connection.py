@@ -105,6 +105,10 @@ class ServerConnection:
 			                	self.player[sock] =  Player(self.rootA,data[10:],self.UP,self.DP)
 			                elif data[8] == 'B':
 			                	self.player[sock] =  Player(self.rootB,data[10:],self.UP,self.DP)
+			                	self.player[sock].team = "A"
+			                elif data[8] == 'B':
+			                	self.player[sock] =  Player(self.rootB,data[10:],self.UP,self.DP)
+			                	self.player[sock].team = "B"
 			                # self.player[sock].pos_thread.start()
 			                self.broadcast_data(sock,data + ' Join!\r')
 			                print(self.player[sock])
