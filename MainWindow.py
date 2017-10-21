@@ -47,12 +47,8 @@ class myThreadTransform(Thread):
 			if show_flag:
 				cv2.imshow('UP',self.UP.Result)
 				cv2.imshow('DP',self.DP.Result)
-<<<<<<< HEAD
-			if cv2.waitKey(1) & 0xFF == ord('q'):
-=======
-			if cv2.waitKey(1) & 0xFF == ord('w'):
->>>>>>> Server
-				
+
+			if cv2.waitKey(1) & 0xFF == ord('w'):				
 				show_flag = not show_flag
 				cv2.waitKey(1)
 				cv2.destroyWindow("UP")
@@ -225,13 +221,8 @@ if __name__ == "__main__":
 	chatbox.pack(padx=10,pady=8)
 	chatboxbt = Button(win , text = 'clear' ,command=lambda: chatbox.delete(1.0,END)).pack()
 
-<<<<<<< HEAD
 	# printbt = Button(win , text = 'display' ,command=lambda: DisplayCar() ).pack()
-=======
 
-
-	
->>>>>>> Server
 
 	main_frame_player = LabelFrame(win,text = "連線玩家",foreground = 'blue')
 	main_frame_player.pack(fill='x',padx=10,pady=2)
@@ -259,12 +250,9 @@ if __name__ == "__main__":
 	message_textbox = Entry(main_frame_player_box, width=16, textvariable = mes).pack(side = RIGHT)
 	message_label1 = Label(main_frame_player_box,text="勾選以下用戶做操作:").pack(side = LEFT)	
 
-<<<<<<< HEAD
 
-	
-=======
 	gamebt = Button(win , text = 'Game Start' ,command=GameThread(Con).start ).pack()
->>>>>>> Server
+
 
 	#window size setting
 	w = win.winfo_reqwidth() # width for the Tk root
