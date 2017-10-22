@@ -64,12 +64,14 @@ class App:
 	teamA_point = 0
 	teamB_point = 0
 
-	def __init__(self,Con):
+	def __init__(self,Con,teamA_score,teamB_score):
 		self.Con = Con
 		self._running = True
 		self._display_surf = None
 		self._image_surf = None
 		self._text_surf = None
+		self.teamA_score = teamA_score
+		self.teamB_score = teamB_score
 		self.game = Game()
 		self.on_init()
 		
@@ -106,14 +108,21 @@ class App:
 		# for i in range(0,len(self.Con.player)):
 		for i in list(self.Con.player):
 			if type(self.Con.player[i]) != type('a'):
+				if self.Con.player[i].image == None:
+					self.Con.player[i].game_init()
+					self.Con.player[i].direction = -1
+					#ChangeColor(self.Con.player[i].image, self.Con.player[i].Color)
+			
 				self.Con.player[i].update()	
 				if self.game.isCollision(self.tower.x,self.tower.y,self.Con.player[i].x,self.Con.player[i].y,30):
 					self.tower.x = randint(0,self.GameWidth/self.tower.step -1)*self.tower.step + self.tower.step/4
 					self.tower.y = randint(0,self.GameHeigh/self.tower.step -1)*self.tower.step + self.tower.step/4
 					if self.Con.player[i].team == "A" :
 						self.teamA_point += 10
+						self.teamA_score.set("Score: "+str(self.teamA_point))
 					elif self.Con.player[i].team == "B" :
 						self.teamB_point += 10
+						self.teamB_score.set("Score: "+str(self.teamB_point))
 					self._text_surf = self.scorefont.render("Score : Team_A : "+str(self.teamA_point)+"    Team_B : "+str(self.teamB_point), False, (255, 255, 255))
 
 				

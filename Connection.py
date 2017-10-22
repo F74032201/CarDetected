@@ -103,8 +103,6 @@ class ServerConnection:
 			                #create player obj
 			                if data[8] == 'A':
 			                	self.player[sock] =  Player(self.rootA,data[10:],self.UP,self.DP)
-			                elif data[8] == 'B':
-			                	self.player[sock] =  Player(self.rootB,data[10:],self.UP,self.DP)
 			                	self.player[sock].team = "A"
 			                elif data[8] == 'B':
 			                	self.player[sock] =  Player(self.rootB,data[10:],self.UP,self.DP)

@@ -5,7 +5,7 @@ import numpy as np
 import cv2
 from operator import itemgetter
 import imutils
-
+from TowerGame import ChangeColor
 from pygame.locals import *
 import pygame
 
@@ -16,6 +16,8 @@ class PositionThread(Thread):
 		self.player = player
 		
 	def run(self):
+		if self.player.image != None:
+			ChangeColor(self.player.image, self.player.Color)
 		self.player.RefreshPos()
 
 class Player(object):
@@ -34,6 +36,8 @@ class Player(object):
 		self.y = 0
 		self.Color = [0,0,0]
 		self.team = None
+		self.image = None
+
 
 		#control the thread to be over
 		self.Connected = True
@@ -65,9 +69,11 @@ class Player(object):
 		self.frame.destroy()
 
 	def RefreshColor(self):
+		print('test0')
 		cv2.namedWindow('Set Color')
 		cv2.setMouseCallback('Set Color',self.on_mouse)
 		self.tmp_frame = self.UP.framethread.frame
+		print('test1')
 
 		while True:
 			# if ret == False:
@@ -88,7 +94,8 @@ class Player(object):
 				break
 		#Set label color
 		self.RGB.config(bg = '#'+str(rgb(self.Color[2],self.Color[1],self.Color[0]).hex))
-
+		
+				
 		
 	def on_mouse(self,event,x,y,flags,param):
 		

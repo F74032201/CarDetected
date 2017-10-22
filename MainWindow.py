@@ -82,10 +82,10 @@ class myThreadFrame(Thread):
 				break
 
 class GameThread(Thread):
-	def __init__(self, Con):
+	def __init__(self, Con, app):
 		super(GameThread, self).__init__()
 		self.Con = Con
-		self.App = App(self.Con)
+		self.App = app
 		
 	def run(self):
 		for idx in list(self.Con.player):
@@ -180,6 +180,15 @@ def DisplayCar():
 			cv2.waitKey(1)
 			break
 
+def score_cal(app,team,num):
+	if team == 'A':
+		app.teamA_point = app.teamA_point + num
+		app.teamA_score.set("Score: " + str(app.teamA_point))
+	else:
+		app.teamB_point = app.teamB_point + num
+		app.teamB_score.set("Score: " + str(app.teamB_point))
+	app._text_surf = app.scorefont.render("Score : Team_A : "+str(app.teamA_point)+"    Team_B : "+str(app.teamB_point), False, (255, 255, 255))
+
 
 if __name__ == "__main__":
 	win = Tk()
@@ -243,6 +252,24 @@ if __name__ == "__main__":
 	Con = ServerConnection(main_frame_player_teamA , main_frame_player_teamB , chatbox , UP, DP)
 	Con.OpenServerSocket()
 
+	teamA_score = StringVar()
+	teamB_score = StringVar()
+	app = App(Con,teamA_score,teamB_score)
+
+	teamA_score_block = Frame(main_frame_player_teamA)
+	teamA_score_block.pack()	
+	teamA_score.set("Score: " + str(app.teamA_point))
+	teamA_score_label = Label(teamA_score_block,textvariable = teamA_score,font = helv36).pack(side = LEFT)
+	teamA_score_minus = Button(teamA_score_block,text = "-",font = helv36,command = lambda: score_cal(app,'A',-10)).pack(side = RIGHT)
+	teamA_score_plus = Button(teamA_score_block,text = "+",font = helv36,command = lambda: score_cal(app,'A',10)).pack(side = RIGHT)
+
+	teamB_score_block = Frame(main_frame_player_teamB)
+	teamB_score_block.pack()	
+	teamB_score.set("Score: " + str(app.teamB_point))
+	teamB_score_label = Label(teamB_score_block,textvariable = teamB_score,font = helv36).pack(side = LEFT)
+	teamB_score_minus = Button(teamB_score_block,text = "-",font = helv36,command = lambda: score_cal(app,'B',-10)).pack(side = RIGHT)
+	teamB_score_plus = Button(teamB_score_block,text = "+",font = helv36,command = lambda: score_cal(app,'B',10)).pack(side = RIGHT)
+
 	mes = StringVar()
 	refresh_4point = Button(main_frame_player_box , text = "攝影機晃到" , command = lambda:refresh_4(UP,DP)).pack(side = RIGHT)
 	delete_button = Button(main_frame_player_box, text = "踢除" , command = lambda: kick(Con)).pack(side = RIGHT)
@@ -251,7 +278,7 @@ if __name__ == "__main__":
 	message_label1 = Label(main_frame_player_box,text="勾選以下用戶做操作:").pack(side = LEFT)	
 
 
-	gamebt = Button(win , text = 'Game Start' ,command=GameThread(Con).start ).pack()
+	gamebt = Button(win , text = 'Game Start' ,command=GameThread(Con,app).start ).pack()
 
 
 	#window size setting
