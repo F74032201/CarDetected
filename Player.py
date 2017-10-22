@@ -112,8 +112,8 @@ class Player(object):
 		hue = hsv_color[0][0][0]
 
 		#sensitivity
-		low = hue-5 if hue-5 > -1 else 0
-		high = hue+5 if hue+5 < 256 else 255
+		low = hue-4 if hue-4 > -1 else 0
+		high = hue+4 if hue+4 < 256 else 255
 		#set bound
 		lower_range = np.array([low, 100, 100], dtype=np.uint8)
 		upper_range = np.array([high, 255, 255], dtype=np.uint8)
