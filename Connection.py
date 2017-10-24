@@ -33,15 +33,15 @@ class ServerConnection:
 		for socket in self.player:
 			if socket != self.server_socket and socket != sock:
 				Name = message[0:message.index('|')]
-				if self.player[socket].name == Name:    
+				if (self.player[socket].name == Name) and (self.player[socket].team == self.player[sock].team):    
 					try :
 						tmp_message = self.player[sock].name + message[message.index('|'):] # src name
 						socket.send(tmp_message.encode(encoding='utf-8'))
-						'''
+						
 						#Print to the window
 						self.chatbox.insert(INSERT, '%s send to %s : %s\n' %(self.player[sock].name,Name,message[message.index('|')+1:]))
 						self.chatbox.see(END)
-						'''
+						
 					except :
 						# broken socket connection may be, chat client pressed ctrl+c for example
 						self.DELETE(socket)
@@ -115,7 +115,7 @@ class ServerConnection:
 			                self.broadcast_data(sock,data+'\r') 
 
 			            elif 'Position' in data:
-			            	self.ser_send_data(sock,str(self.player[sock].pos)+"(256,256)")
+			            	self.ser_send_data(sock,"POS:"+str(self.player[sock].pos)+"(256,256)")
 
 			            #sent to specific client   
 			            elif '|' in data:
