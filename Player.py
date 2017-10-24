@@ -80,14 +80,14 @@ class Player(object):
 
 			
 			self.FindPos(self.tmp_frame,(0,0))
-			print("1")
+			# print("1")
 			cv2.imshow('Set Color',self.tmp_frame)
 			cv2.waitKey(1)
 			cv2.waitKey(1)
 			cv2.waitKey(1)
 			cv2.waitKey(1)
 			self.tmp_frame = self.DP.Result
-			print("2")
+			# print("2")
 			if cv2.waitKey(1) & 0xFF == ord('s'):
 				cv2.destroyWindow("Set Color")
 				cv2.waitKey(1)
@@ -121,8 +121,8 @@ class Player(object):
 		hue = hsv_color[0][0][0]
 
 		#sensitivity
-		low = hue-5 if hue-5 > -1 else 0
-		high = hue+5 if hue+5 < 256 else 255
+		low = hue-4 if hue-4 > -1 else 0
+		high = hue+4 if hue+4 < 256 else 255
 		#set bound
 		lower_range = np.array([low, 100, 100], dtype=np.uint8)
 		upper_range = np.array([high, 255, 255], dtype=np.uint8)
@@ -150,7 +150,7 @@ class Player(object):
 		if (len(cnts)==0):		#can't detect. Use last result.
 			# self.dst = src
 			# ?self.pos = self.lastCenter
-			print("QQ")
+			# print("QQ")
 			return lastcar
 
 		#find the max area

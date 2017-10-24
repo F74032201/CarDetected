@@ -101,7 +101,7 @@ class App:
 		for i in list(self.Con.player):
 			if type(self.Con.player[i]) != type('a'):
 				print(self.Con.player[i].carDst[0], self.Con.player[i].carDst[1])
-				self.tower.append(Tower(self.Con.player[i].carDst[0], self.Con.player[i].carDst[0]))
+				self.tower.append(Tower(self.Con.player[i].carDst[0], self.Con.player[i].carDst[1]))
 				self.tower[c].id = self.Con.player[i].id
 				ChangeColor(self.tower[c].image,self.Con.player[i].Color)
 				c = c + 1
@@ -120,8 +120,8 @@ class App:
 				self.Con.player[i].update()	
 				for j in range(0,len(self.tower)):
 					if self.game.isCollision(self.tower[j].x,self.tower[j].y,self.Con.player[i].x,self.Con.player[i].y,30):
-						if self.toewr[i].id == self.Con.player[i].id:
-							self.tower[i].done = True
+						if self.tower[j].id == self.Con.player[i].id:
+							self.tower[j].done = True
 							self.Con.player[i].done = True
 							print("Done")
 
