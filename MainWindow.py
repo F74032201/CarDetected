@@ -231,16 +231,16 @@ if __name__ == "__main__":
 	main_frame_player_box.pack(fill='x',padx=10,pady=8)
 
 	main_frame_player_team = LabelFrame(main_frame_player)
-	main_frame_player_team.pack(fill='x',padx=5,pady=2)
+	main_frame_player_team.pack(side = LEFT)
 
-	main_frame_player_teamA = LabelFrame(main_frame_player_team,text = "Team A",foreground="red")
-	main_frame_player_teamA.pack(side = LEFT)
+	# main_frame_player_teamA = LabelFrame(main_frame_player_team,text = "Team A",foreground="red")
+	# main_frame_player_teamA.pack(side = LEFT)
 
-	main_frame_player_teamB = LabelFrame(main_frame_player_team,text = "Team B",foreground="red")
-	main_frame_player_teamB.pack(side = RIGHT)
+	# main_frame_player_teamB = LabelFrame(main_frame_player_team,text = "Team B",foreground="red")
+	# main_frame_player_teamB.pack(side = RIGHT)
 	
 	#create connection obj
-	Con = ServerConnection(main_frame_player_teamA , main_frame_player_teamB , chatbox , UP, DP)
+	Con = ServerConnection(main_frame_player_team, chatbox , UP, DP)
 	Con.OpenServerSocket()
 
 	mes = StringVar()

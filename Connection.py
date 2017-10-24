@@ -4,21 +4,21 @@ from tkinter.scrolledtext import *
 from Player import *
 
 class ServerConnection:
-	def __init__(self,rootA,rootB,chatbox,UP,DP):
+	def __init__(self,root,chatbox,UP,DP):
 		self.UP = UP
 		self.DP = DP
-		self.rootA = rootA
-		self.rootB = rootB
+		self.root = root
 		self.RECV_BUFFER = 4096 
 		self.PORT = 5000
 		self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.player = {}
+		self.player_num = 0
 		self.chatbox = chatbox
 
 	def ser_send_data(self,sock,message):
 		#Sending message from server
 		tmp_message = 'Master|' + message + '\r'
-		print(message)
+		# print(message)
 		try :
 			sock.send(tmp_message.encode(encoding='utf-8'))
 			#Print to the window
@@ -101,14 +101,11 @@ class ServerConnection:
 			            if 'Register' in data:
 			                sock.send("Master|Client hello!\r".encode(encoding='utf-8'))
 			                #create player obj
-			                if data[8] == 'A':
-			                	self.player[sock] =  Player(self.rootA,data[10:],self.UP,self.DP)
-			                elif data[8] == 'B':
-			                	self.player[sock] =  Player(self.rootB,data[10:],self.UP,self.DP)
-			                	self.player[sock].team = "A"
-			                elif data[8] == 'B':
-			                	self.player[sock] =  Player(self.rootB,data[10:],self.UP,self.DP)
-			                	self.player[sock].team = "B"
+			                self.player[sock] =  Player(self.root,data[10:],self.UP,self.DP)
+			                self.player[sock].id = self.player_num
+			                self.player_num = self.player_num + 1
+			                # self.player[sock].team = "A"
+
 			                # self.player[sock].pos_thread.start()
 			                self.broadcast_data(sock,data + ' Join!\r')
 			                print(self.player[sock])

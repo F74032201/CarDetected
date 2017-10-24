@@ -27,7 +27,8 @@ class Player(object):
 
 		self.root = root
 		self.name = name
-
+		self.id = 0
+		self.done = False
 
 		self.pos = (-1,-1)
 		self.x = 0
@@ -40,6 +41,7 @@ class Player(object):
 		self.tmp_frame = None
 		self.wallHigh = 14.5
 		self.carHigh = 10
+		self.carDst = (0,0)
 		#create thread to refresh position
 		self.pos_thread = PositionThread(self)
 
@@ -57,6 +59,9 @@ class Player(object):
 		self.HighBtn = Button(self.frame,text = "設定車高",command =self.SetCarHigh).pack(side = RIGHT)
 		self.SetHighTextBox = Entry(self.frame,width = 8,textvariable = self.HighStr).pack(side = RIGHT)
 		
+		self.DstStr = StringVar()
+		self.DstBtn = Button(self.frame,text = "設定目的地",command =self.SetCarDst).pack(side = RIGHT)
+		self.SetDstTextBox = Entry(self.frame,width = 8,textvariable = self.DstStr).pack(side = RIGHT)
 		
 		self.CarPosStr = StringVar()
 		self.CarPosStr.set(str(self.pos))
@@ -77,6 +82,10 @@ class Player(object):
 			self.FindPos(self.tmp_frame,(0,0))
 			print("1")
 			cv2.imshow('Set Color',self.tmp_frame)
+			cv2.waitKey(1)
+			cv2.waitKey(1)
+			cv2.waitKey(1)
+			cv2.waitKey(1)
 			self.tmp_frame = self.DP.Result
 			print("2")
 			if cv2.waitKey(1) & 0xFF == ord('s'):
@@ -237,4 +246,10 @@ class Player(object):
 		self.carHigh = int(self.HighStr.get())
 		print("%s's car high set to %d" %(self.name,self.carHigh))
 
+	def SetCarDst(self):
+		tmp = self.DstStr.get()
+		tmp = tmp.split(',',1)
+		self.carDst = (int(tmp[0]), int(tmp[1]))
+		print(self.carDst)
+		#print("%s's car Dst set to %d" %(self.name,self.carDst))
 

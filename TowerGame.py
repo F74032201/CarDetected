@@ -44,12 +44,15 @@ class Tower:
 	y = 0
 	step = 64
 	picwidth = 32
+
 	def __init__(self,x,y):
 		self.x = x * self.step + self.step/4
 		self.y = y * self.step + self.step/4
 		self.image = pygame.image.load('img/tower.png').convert()
 		self.image = pygame.transform.scale(self.image,(self.picwidth,self.picwidth))
 		self.image.set_colorkey( (0,0,0), RLEACCEL )
+		self.done = False
+		self.id = 0
 	def draw(self, surface):
 		surface.blit(self.image,(self.x , self.y))
 
@@ -60,7 +63,7 @@ class App:
 	textsurfHeight = 30
 	windowHeigh = GameHeigh + textsurfHeight
 	windowWidth =512
-	tower = 0
+	tower = []
 	teamA_point = 0
 	teamB_point = 0
 
@@ -89,11 +92,19 @@ class App:
 		# # self.add_player([255,0,0], "B") #1
 		# self.player[1].x = self.player[1].map_width-self.player[1].picwidth
 		# self.player[1].y = self.player[1].map_height-self.player[1].picwidth
-		self.tower = Tower(5,5)
+		
 		self._text_surf = self.scorefont.render("Score : Team_A : "+str(self.teamA_point)+"    Team_B : "+str(self.teamB_point), False, (255, 255, 255))
+		self.Tower_init()
 
-
-	
+	def Tower_init(self):
+		c = 0
+		for i in list(self.Con.player):
+			if type(self.Con.player[i]) != type('a'):
+				print(self.Con.player[i].carDst[0], self.Con.player[i].carDst[1])
+				self.tower.append(Tower(self.Con.player[i].carDst[0], self.Con.player[i].carDst[0]))
+				self.tower[c].id = self.Con.player[i].id
+				ChangeColor(self.tower[c].image,self.Con.player[i].Color)
+				c = c + 1
 
 	def on_event(self, event):
 		if event.type == QUIT:
@@ -107,16 +118,13 @@ class App:
 		for i in list(self.Con.player):
 			if type(self.Con.player[i]) != type('a'):
 				self.Con.player[i].update()	
-				if self.game.isCollision(self.tower.x,self.tower.y,self.Con.player[i].x,self.Con.player[i].y,30):
-					self.tower.x = randint(0,self.GameWidth/self.tower.step -1)*self.tower.step + self.tower.step/4
-					self.tower.y = randint(0,self.GameHeigh/self.tower.step -1)*self.tower.step + self.tower.step/4
-					if self.Con.player[i].team == "A" :
-						self.teamA_point += 10
-					elif self.Con.player[i].team == "B" :
-						self.teamB_point += 10
-					self._text_surf = self.scorefont.render("Score : Team_A : "+str(self.teamA_point)+"    Team_B : "+str(self.teamB_point), False, (255, 255, 255))
+				for j in range(0,len(self.tower)):
+					if self.game.isCollision(self.tower[j].x,self.tower[j].y,self.Con.player[i].x,self.Con.player[i].y,30):
+						if self.toewr[i].id == self.Con.player[i].id:
+							self.tower[i].done = True
+							self.Con.player[i].done = True
+							print("Done")
 
-				
 		pass
 
 	def on_render(self):
@@ -125,7 +133,8 @@ class App:
 		for i in list(self.Con.player):
 			if type(self.Con.player[i]) != type('a'):
 				self.Con.player[i].draw(self._display_surf)
-		self.tower.draw(self._display_surf)
+		for i in range(0,len(self.tower)):
+			self.tower[i].draw(self._display_surf)
 		self._display_surf.blit(self._text_surf,(0,self.GameHeigh))
 		pygame.display.flip()
 		
