@@ -2,7 +2,7 @@ from pygame.locals import *
 import pygame
 import time
 from random import randint
-
+from tkinter import messagebox
 import os
 
 
@@ -40,14 +40,12 @@ class Game:
 		return False
 
 class Tower:
-	x = 0
-	y = 0
-	step = 64
 	picwidth = 32
 
-	def __init__(self,x,y):
-		self.x = x * self.step + self.step/4
-		self.y = y * self.step + self.step/4
+	def __init__(self,x,y,block_size):
+		self.block_size = block_size
+		self.x = x * self.block_size + self.block_size/4
+		self.y = y * self.block_size + self.block_size/4
 		self.image = pygame.image.load('img/tower.png').convert()
 		self.image = pygame.transform.scale(self.image,(self.picwidth,self.picwidth))
 		self.image.set_colorkey( (0,0,0), RLEACCEL )
@@ -56,23 +54,22 @@ class Tower:
 	def draw(self, surface):
 		surface.blit(self.image,(self.x , self.y))
 
-class App:
-
-	GameWidth = 512
-	GameHeigh = 512
-	textsurfHeight = 30
-	windowHeigh = GameHeigh + textsurfHeight
-	windowWidth =512
-	tower = []
-	teamA_point = 0
-	teamB_point = 0
+class App:	
+	tower = {}
 
 	def __init__(self,Con):
 		self.Con = Con
 		self._running = True
+		self._all_done = False
 		self._display_surf = None
 		self._image_surf = None
 		self._text_surf = None
+		self.block_size = Con.block_size
+		self.GameHeigh = Con.border_H * Con.block_size
+		self.GameWidth = Con.border_W * Con.block_size
+		self.textsurfHeight = 30
+		self.windowHeigh = self.GameHeigh + self.textsurfHeight
+		self.windowWidth = self.GameWidth
 		self.game = Game()
 		self.on_init()
 		
@@ -80,31 +77,37 @@ class App:
 	def on_init(self):
 		pygame.init()
 		self._display_surf = pygame.display.set_mode((self.windowWidth, self.windowHeigh), pygame.HWSURFACE)
-		pygame.display.set_caption('Tower War')
+		pygame.display.set_caption('Tower War (esc to quit)')
 
 		pygame.font.init() # you have to call this at the start, if you want to use this module.
 		self.scorefont = pygame.font.SysFont('Comic Sans MS', 30)
 
 		self.bg_image = pygame.image.load('img/map.jpg').convert()
 		self.bg_image = pygame.transform.scale(self.bg_image,(self.GameWidth,self.GameHeigh))
+		self.start_ticks = pygame.time.get_ticks()
+		self.game_time_sec = int((pygame.time.get_ticks() - self.start_ticks)/1000) # milliseconds to seconds
+		self.game_time_sec10 = int(self.game_time_sec/10)
+		self.game_time_sec = int(self.game_time_sec%10)
+		self.game_time_min = int(self.game_time_sec10/6)
+		self.game_time_sec10 = int(self.game_time_sec10%6)
+		self._text_surf = self.scorefont.render("Time : "+str(self.game_time_min)+": "+str(self.game_time_sec10)\
+		+str(self.game_time_sec), False, (255, 255, 255))
 		# self._running = True
 		# self.add_player([0,0,255], "A") #0
 		# # self.add_player([255,0,0], "B") #1
 		# self.player[1].x = self.player[1].map_width-self.player[1].picwidth
 		# self.player[1].y = self.player[1].map_height-self.player[1].picwidth
 		
-		self._text_surf = self.scorefont.render("Score : Team_A : "+str(self.teamA_point)+"    Team_B : "+str(self.teamB_point), False, (255, 255, 255))
+		# self._text_surf = self.scorefont.render("Score : Team_A : "+str(self.teamA_point)+"    Team_B : "+str(self.teamB_point), False, (255, 255, 255))
 		self.Tower_init()
 
 	def Tower_init(self):
-		c = 0
-		for i in list(self.Con.player):
+		for i in list(self.Con.player):	
 			if type(self.Con.player[i]) != type('a'):
-				print(self.Con.player[i].carDst[0], self.Con.player[i].carDst[1])
-				self.tower.append(Tower(self.Con.player[i].carDst[0], self.Con.player[i].carDst[1]))
-				self.tower[c].id = self.Con.player[i].id
-				ChangeColor(self.tower[c].image,self.Con.player[i].Color)
-				c = c + 1
+				#print(self.Con.player[i].carDst[0], self.Con.player[i].carDst[1])
+				self.tower[i] = Tower(self.Con.player[i].carDst[0], self.Con.player[i].carDst[1],self.block_size)
+				self.tower[i].id = self.Con.player[i].id
+				ChangeColor(self.tower[i].image,self.Con.player[i].Color)
 
 	def on_event(self, event):
 		if event.type == QUIT:
@@ -117,30 +120,72 @@ class App:
 		# for i in range(0,len(self.Con.player)):
 		for i in list(self.Con.player):
 			if type(self.Con.player[i]) != type('a'):
+				if self.Con.player[i].image == None:
+					self.Con.player[i].game_init()
+					self.Con.player[i].direction = -1
 				self.Con.player[i].update()	
-				for j in range(0,len(self.tower)):
+				for j in list(self.tower):
 					if self.game.isCollision(self.tower[j].x,self.tower[j].y,self.Con.player[i].x,self.Con.player[i].y,30):
-						if self.tower[j].id == self.Con.player[i].id:
+						if self.tower[j].id == self.Con.player[i].id and (not self.tower[j].done):
 							self.tower[j].done = True
 							self.Con.player[i].done = True
-							print("Done")
+							#record every player finished time
+							self.Con.player[i].game_time_min = self.game_time_min
+							self.Con.player[i].game_time_sec10 = self.game_time_sec10
+							self.Con.player[i].game_time_sec = self.game_time_sec
+							print("%s has Done at %d分 %d%d秒" %(self.Con.player[i].name,\
+								self.Con.player[i].game_time_min,\
+								self.Con.player[i].game_time_sec10,\
+								self.Con.player[i].game_time_sec))
 
+							#check whether all the cars have done
+							self._all_done = True
+							for idx in list(self.Con.player):
+								if type(self.Con.player[idx]) != type('a'):
+									if not self.Con.player[idx].done:
+										self._all_done = False
+							if self._all_done:
+								self._running = False
+
+		self.game_time_sec = int((pygame.time.get_ticks() - self.start_ticks)/1000) # milliseconds to seconds
+		self.game_time_sec10 = int(self.game_time_sec/10)
+		self.game_time_sec = int(self.game_time_sec%10)
+		self.game_time_min = int(self.game_time_sec10/6)
+		self.game_time_sec10 = int(self.game_time_sec10%6)
+		self._text_surf = self.scorefont.render("Time : "+str(self.game_time_min)+": "+str(self.game_time_sec10)\
+		+str(self.game_time_sec), False, (255, 255, 255))
 		pass
 
 	def on_render(self):
 		self._display_surf.fill((0,0,0))
 		self._display_surf.blit(self.bg_image,(0, 0))
+		for i in list(self.tower):
+			self.tower[i].draw(self._display_surf)
 		for i in list(self.Con.player):
 			if type(self.Con.player[i]) != type('a'):
 				self.Con.player[i].draw(self._display_surf)
-		for i in range(0,len(self.tower)):
-			self.tower[i].draw(self._display_surf)
 		self._display_surf.blit(self._text_surf,(0,self.GameHeigh))
 		pygame.display.flip()
 		
 	def on_cleanup(self):
 		pygame.quit()
 		print("pygame.quit()")
+		if self._all_done:
+			#print all player finished time to the screen
+			print_mes = ""
+			for i in list(self.Con.player):
+				if type(self.Con.player[i]) != type('a'):
+					print_mes = print_mes + ("%s 行走時間： %d分 %d%d秒\n" \
+						%(self.Con.player[i].name,\
+						self.Con.player[i].game_time_min,\
+						self.Con.player[i].game_time_sec10,\
+						self.Con.player[i].game_time_sec))
+					#initialize everyone 
+					del self.tower[i]
+					self.Con.player[i].done = False
+			print_mes = print_mes + ("共花時間: %d分 %d%d秒" \
+				%(self.game_time_min,self.game_time_sec10,self.game_time_sec))
+			messagebox.showinfo("All done!",print_mes)
 
 	def on_execute(self):
 		if self.on_init() == False:
@@ -150,30 +195,7 @@ class App:
 			pygame.event.pump()
 			keys = pygame.key.get_pressed()
 
-			if (keys[pygame.K_RIGHT]) or (keys[pygame.K_KP6]):
-				self.Con.player[1].moveRight()
 			
-			if (keys[pygame.K_LEFT]) or (keys[pygame.K_KP4]):
-				self.Con.player[1].moveLeft()
-
-			if (keys[pygame.K_UP]) or (keys[pygame.K_KP8]):
-				self.Con.player[1].moveUp()
-	
-			if (keys[pygame.K_DOWN]) or (keys[pygame.K_KP2]):
-				self.Con.player[1].moveDown()
-
-			if (keys[pygame.K_g]):
-				self.Con.player[2].moveRight()
-			
-			if (keys[pygame.K_d]):
-				self.Con.player[2].moveLeft()
-
-			if (keys[pygame.K_r]):
-				self.Con.player[2].moveUp()
-	
-			if (keys[pygame.K_f]):
-				self.Con.player[2].moveDown()
-
 			if (keys[pygame.K_ESCAPE]):
 				print("esc")
 				self._running = False

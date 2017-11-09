@@ -4,10 +4,13 @@ from tkinter.scrolledtext import *
 from Player import *
 
 class ServerConnection:
-	def __init__(self,root,chatbox,UP,DP):
+	def __init__(self,root,chatbox,UP,DP,border_H,border_W,block_size):
 		self.UP = UP
 		self.DP = DP
 		self.root = root
+		self.border_H = border_H
+		self.border_W = border_W
+		self.block_size = block_size
 		self.RECV_BUFFER = 4096 
 		self.PORT = 5000
 		self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -37,11 +40,11 @@ class ServerConnection:
 					try :
 						tmp_message = self.player[sock].name + message[message.index('|'):] # src name
 						socket.send(tmp_message.encode(encoding='utf-8'))
-						'''
+						
 						#Print to the window
-						self.chatbox.insert(INSERT, '%s send to %s : %s\n' %(self.player[sock].name,Name,message[message.index('|')+1:]))
+						self.chatbox.insert(INSERT, '%s send to %s : %s\n' %(self.player[sock].name,Name,message[message.index('|')+1:len(message)-1]))
 						self.chatbox.see(END)
-						'''
+						
 					except :
 						# broken socket connection may be, chat client pressed ctrl+c for example
 						self.DELETE(socket)
@@ -101,7 +104,7 @@ class ServerConnection:
 			            if 'Register' in data:
 			                sock.send("Master|Client hello!\r".encode(encoding='utf-8'))
 			                #create player obj
-			                self.player[sock] =  Player(self.root,data[10:],self.UP,self.DP)
+			                self.player[sock] =  Player(self.root,data[10:],self.UP,self.DP,self.border_H,self.border_W,self.block_size)
 			                self.player[sock].id = self.player_num
 			                self.player_num = self.player_num + 1
 			                # self.player[sock].team = "A"
@@ -114,7 +117,9 @@ class ServerConnection:
 			                self.broadcast_data(sock,data+'\r') 
 
 			            elif 'Position' in data:
-			            	self.ser_send_data(sock,str(self.player[sock].pos)+"(256,256)")
+			            	tmpX = int(self.block_size/2) + self.player[sock].carDst[0]*self.block_size
+			            	tmpY = int(self.block_size/2) + self.player[sock].carDst[1]*self.block_size
+			            	self.ser_send_data(sock,"POS:"+str((self.player[sock].x,self.player[sock].y))+str((tmpX,tmpY)))
 
 			            #sent to specific client   
 			            elif '|' in data:

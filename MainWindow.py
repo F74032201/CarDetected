@@ -10,7 +10,7 @@ import numpy as np
 import cv2
 
 start_count = 0
-maze_count = 0
+
 
 class myThread(Thread):
 	"""docstring for myThread"""
@@ -38,21 +38,20 @@ class myThreadTransform(Thread):
 		self._stop_event = threading.Event()
 
 	def run(self):
-		cv2.namedWindow('UP')
 		show_flag = True
 		while True:
 			self.UP.RefreshResult()
 			self.DP.RefreshResult()
 
 			if show_flag:
-				cv2.imshow('UP',self.UP.Result)
-				cv2.imshow('DP',self.DP.Result)
+				cv2.imshow('UP (w to quit)',self.UP.Result)
+				cv2.imshow('DP (w to quit)',self.DP.Result)
 
 			if cv2.waitKey(1) & 0xFF == ord('w'):				
 				show_flag = not show_flag
 				cv2.waitKey(1)
-				cv2.destroyWindow("UP")
-				cv2.destroyWindow("DP")
+				cv2.destroyWindow("UP (w to quit)")
+				cv2.destroyWindow("DP (w to quit)")
 				cv2.waitKey(1)
 				cv2.waitKey(1)
 				cv2.waitKey(1)
@@ -81,6 +80,7 @@ class myThreadFrame(Thread):
 			if ret == False:
 				break
 
+
 class GameThread(Thread):
 	def __init__(self, Con):
 		super(GameThread, self).__init__()
@@ -93,7 +93,7 @@ class GameThread(Thread):
 				self.Con.player[idx].game_init()
 				ChangeColor(self.Con.player[idx].image,self.Con.player[idx].Color)
 		self.App.on_execute()
-					
+
 
 def Exit(r):
 	os._exit(1)
@@ -180,12 +180,22 @@ def DisplayCar():
 			cv2.waitKey(1)
 			break
 
+def GameRestart(Con,chatbox):
+	gamethread = GameThread(Con)
+	gamethread.start()
+
+	#send start to everyone
+	for idx in list(Con.player):
+		if type(Con.player[idx]) != type('a'):
+			Con.ser_send_data(idx,"Start")
+			chatbox.insert(INSERT, 'Master send to %s : %s\n' %(Con.player[idx].name,"Start"))
+			chatbox.see(END)
 
 if __name__ == "__main__":
 	win = Tk()
 
 	#create camera obj
-	cap = cv2.VideoCapture(1)
+	cap = cv2.VideoCapture(0)
 
 	cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1080);
 	cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720);
@@ -231,7 +241,7 @@ if __name__ == "__main__":
 	main_frame_player_box.pack(fill='x',padx=10,pady=8)
 
 	main_frame_player_team = LabelFrame(main_frame_player)
-	main_frame_player_team.pack(side = LEFT)
+	main_frame_player_team.pack(fill='x',padx=10,pady=8)
 
 	# main_frame_player_teamA = LabelFrame(main_frame_player_team,text = "Team A",foreground="red")
 	# main_frame_player_teamA.pack(side = LEFT)
@@ -239,8 +249,11 @@ if __name__ == "__main__":
 	# main_frame_player_teamB = LabelFrame(main_frame_player_team,text = "Team B",foreground="red")
 	# main_frame_player_teamB.pack(side = RIGHT)
 	
+	border_H = 6
+	border_W = 6
+	block_size = 64
 	#create connection obj
-	Con = ServerConnection(main_frame_player_team, chatbox , UP, DP)
+	Con = ServerConnection(main_frame_player_team, chatbox , UP, DP,border_H,border_W,block_size)
 	Con.OpenServerSocket()
 
 	mes = StringVar()
@@ -250,8 +263,8 @@ if __name__ == "__main__":
 	message_textbox = Entry(main_frame_player_box, width=16, textvariable = mes).pack(side = RIGHT)
 	message_label1 = Label(main_frame_player_box,text="勾選以下用戶做操作:").pack(side = LEFT)	
 
-
-	gamebt = Button(win , text = 'Game Start' ,command=GameThread(Con).start ).pack()
+	
+	gamebt = Button(win , text = 'Game Start' ,command= lambda: GameRestart(Con,chatbox) ).pack()
 
 
 	#window size setting
@@ -261,8 +274,8 @@ if __name__ == "__main__":
 	ws = win.winfo_screenwidth() # width of the screen
 	hs = win.winfo_screenheight() # height of the screen
 	# calculate x and y coordinates for the Tk root window
-	x = (ws/2) - (950/2)
+	x = (ws/2) - (700/2)
 	y = (hs/2) - (600/2)
 	# set the dimensions of the screen and where it is placed
-	win.geometry('%dx%d+%d+%d' % (950, 600, x, y))
+	win.geometry('%dx%d+%d+%d' % (700, 600, x, y))
 	win.mainloop()

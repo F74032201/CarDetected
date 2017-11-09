@@ -5,7 +5,7 @@ import numpy as np
 import cv2
 from operator import itemgetter
 import imutils
-
+from TowerGame import ChangeColor
 from pygame.locals import *
 import pygame
 
@@ -16,10 +16,12 @@ class PositionThread(Thread):
 		self.player = player
 		
 	def run(self):
+		if self.player.image != None:
+			ChangeColor(self.player.image, self.player.Color)
 		self.player.RefreshPos()
 
 class Player(object):
-	def __init__(self, root,name,UP,DP):
+	def __init__(self, root,name,UP,DP,border_H,border_W,block_size):
 		super(Player, self).__init__()
 		#obj of transformed frame
 		self.UP = UP
@@ -31,10 +33,20 @@ class Player(object):
 		self.done = False
 
 		self.pos = (-1,-1)
+		self.posUsr = (-1,-1)
+		self.border_H = border_H
+		self.border_W = border_W
+		self.block_size = block_size
+
 		self.x = 0
 		self.y = 0
 		self.Color = [0,0,0]
 		self.team = None
+		self.image = None
+
+		self.game_time_min = 0
+		self.game_time_sec = 0
+		self.game_time_sec10 = 0
 
 		#control the thread to be over
 		self.Connected = True
@@ -70,9 +82,9 @@ class Player(object):
 		self.frame.destroy()
 
 	def RefreshColor(self):
-		cv2.namedWindow('Set Color')
-		cv2.setMouseCallback('Set Color',self.on_mouse)
-		self.tmp_frame = self.UP.framethread.frame
+		cv2.namedWindow('Set Color (s to quit)')
+		cv2.setMouseCallback('Set Color (s to quit)',self.on_mouse)
+		self.tmp_frame = self.DP.framethread.frame
 
 		while True:
 			# if ret == False:
@@ -81,7 +93,7 @@ class Player(object):
 			
 			self.FindPos(self.tmp_frame,(0,0))
 			# print("1")
-			cv2.imshow('Set Color',self.tmp_frame)
+			cv2.imshow('Set Color (s to quit)',self.tmp_frame)
 			cv2.waitKey(1)
 			cv2.waitKey(1)
 			cv2.waitKey(1)
@@ -89,7 +101,7 @@ class Player(object):
 			self.tmp_frame = self.DP.Result
 			# print("2")
 			if cv2.waitKey(1) & 0xFF == ord('s'):
-				cv2.destroyWindow("Set Color")
+				cv2.destroyWindow("Set Color (s to quit)")
 				cv2.waitKey(1)
 				cv2.waitKey(1)
 				cv2.waitKey(1)
@@ -148,9 +160,6 @@ class Player(object):
 		
 
 		if (len(cnts)==0):		#can't detect. Use last result.
-			# self.dst = src
-			# ?self.pos = self.lastCenter
-			# print("QQ")
 			return lastcar
 
 		#find the max area
@@ -183,12 +192,14 @@ class Player(object):
 
 			self.pos = (int(lastX),int(lastY))
 			self.x, self.y = self.pos
-			self.CarPosStr.set(str(self.pos))
+			self.x, self.y = (int(self.x / 512 * self.border_W * self.block_size-(self.block_size / 2))\
+				,int(self.y / 512 * self.border_H * self.block_size -(self.block_size / 2)))
+			self.CarPosStr.set(str((self.x, self.y)))
 			# print(self.pos)
 
 	def game_init(self):
-		self.map_width = 512
-		self.map_height = 512
+		self.map_width = self.border_W * self.block_size
+		self.map_height = self.border_H * self.block_size
 		self.step = 32
 		self.picwidth =32
 		self.direction = 0
@@ -238,7 +249,7 @@ class Player(object):
 		self.direction = 3
 	
 	def draw(self, surface):
-		print(self.x,self.y)
+		#print(self.x,self.y)
 		surface.blit(self.image,(self.x,self.y))
 
 
@@ -249,7 +260,7 @@ class Player(object):
 	def SetCarDst(self):
 		tmp = self.DstStr.get()
 		tmp = tmp.split(',',1)
-		self.carDst = (int(tmp[0]), int(tmp[1]))
+		self.carDst = (int(tmp[0]),int(tmp[1]))
 		print(self.carDst)
 		#print("%s's car Dst set to %d" %(self.name,self.carDst))
 
