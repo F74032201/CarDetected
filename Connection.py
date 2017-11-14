@@ -119,7 +119,7 @@ class ServerConnection:
 			            elif 'Position' in data:
 			            	tmpX = int(self.block_size/2) + self.player[sock].carDst[0]*self.block_size
 			            	tmpY = int(self.block_size/2) + self.player[sock].carDst[1]*self.block_size
-			            	self.ser_send_data(sock,"POS:"+str((self.player[sock].x + self.block_size/2,self.player[sock].y + self.block_size/2))+str((tmpX,tmpY)))
+			            	self.ser_send_data(sock,"POS:"+str(int((self.player[sock].x + self.block_size/2),int(self.player[sock].y + self.block_size/2)))+str((tmpX,tmpY)))
 
 			            #sent to specific client   
 			            elif '|' in data:
