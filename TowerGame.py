@@ -129,6 +129,8 @@ class App:
 						if self.tower[j].id == self.Con.player[i].id and (not self.tower[j].done):
 							self.tower[j].done = True
 							self.Con.player[i].done = True
+							#send done message to car
+							self.Con.ser_send_data(i,"Done")
 							#record every player finished time
 							self.Con.player[i].game_time_min = self.game_time_min
 							self.Con.player[i].game_time_sec10 = self.game_time_sec10
