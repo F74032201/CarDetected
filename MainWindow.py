@@ -195,7 +195,7 @@ if __name__ == "__main__":
 	win = Tk()
 
 	#create camera obj
-	cap = cv2.VideoCapture(1)
+	cap = cv2.VideoCapture(0)
 
 	cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280);
 	cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720);
@@ -249,8 +249,8 @@ if __name__ == "__main__":
 	# main_frame_player_teamB = LabelFrame(main_frame_player_team,text = "Team B",foreground="red")
 	# main_frame_player_teamB.pack(side = RIGHT)
 	
-	border_H = 6
-	border_W = 6
+	border_H = 9
+	border_W = 9
 	block_size = 64
 	#create connection obj
 	Con = ServerConnection(main_frame_player_team, chatbox , UP, DP,border_H,border_W,block_size)

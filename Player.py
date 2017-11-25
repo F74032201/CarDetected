@@ -37,7 +37,8 @@ class Player(object):
 		self.border_H = border_H
 		self.border_W = border_W
 		self.block_size = block_size
-
+		self.picwidth =32
+		
 		self.x = 0
 		self.y = 0
 		self.Color = [0,0,0]
@@ -200,8 +201,7 @@ class Player(object):
 	def game_init(self):
 		self.map_width = self.border_W * self.block_size
 		self.map_height = self.border_H * self.block_size
-		self.step = 32
-		self.picwidth =32
+		self.step = 32		
 		self.direction = 0
 		self.angle = 0
 		self.image = pygame.image.load("img/car.png").convert()
