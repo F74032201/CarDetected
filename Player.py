@@ -192,9 +192,9 @@ class Player(object):
 
 			self.pos = (int(lastX),int(lastY))
 			self.x, self.y = self.pos
-			self.x, self.y = (int(self.x / 512 * self.border_W * self.block_size - self.block_size/2)\
-				,int(self.y / 512 * self.border_H * self.block_size - self.block_size/2))
-			self.CarPosStr.set(str((int(self.x + self.block_size/2), int(self.y + self.block_size/2))))
+			self.x, self.y = (int(self.x / 512 * self.border_W * self.block_size - self.picwidth/2)\
+				,int(self.y / 512 * self.border_H * self.block_size - self.picwidth/2))
+			self.CarPosStr.set(str((int(self.x + self.picwidth/2), int(self.y + self.picwidth/2))))
 			# print(self.pos)
 
 	def game_init(self):
