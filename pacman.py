@@ -10,9 +10,9 @@ block = []
 vertexlist=[]
 map_width = 576
 map_height = 576
-map_size = 64
-w = int(map_width/map_size)
-h = int(map_height/map_size)
+block_size = 64
+w = int(map_width/block_size)
+h = int(map_height/block_size)
 class Vertex:
 	vid = [0,0]
 	adj = []
@@ -292,106 +292,106 @@ def eraseBG(image):
 			if image.get_at((x, y))[0] == 0 and image.get_at((x, y))[1] == 0 and image.get_at((x, y))[2] == 0:
 				image.set_at((x, y), pygame.Color(0, 0, 0, 0))
 	image.set_colorkey( (0,0,0), RLEACCEL )
-class Player:
-	x = 256+32
-	y = 384+32
-	last_x = 256+32
-	last_y = 384+32
-	step = 0
-	direction = 0
-	map_width = 576
-	map_height = 576
-	picwidth =32
+# class Player:
+# 	x = 256+32
+# 	y = 384+32
+# 	last_x = 256+32
+# 	last_y = 384+32
+# 	step = 0
+# 	direction = 0
+# 	map_width = 576
+# 	map_height = 576
+# 	picwidth =32
 
-	color = [0,0,0]
-	team = None
-	map_size = 64
-	# map_x = int(x/map_size)
-	# map_y = int(y/map_size)
+# 	color = [0,0,0]
+# 	team = None
+# 	block_size = 64
+# 	# map_x = int(x/block_size)
+# 	# map_y = int(y/block_size)player
 	
-	def __init__(self):
-		self.life = 10
-		self.x = 0
-		self.y = 0
-		self.step = 8
-		self.angle = 0
-		self._image_0 = pygame.image.load("img/pacman.png").convert()
-		self._image_0 = pygame.transform.scale(self._image_0,(self.picwidth,self.picwidth))
-		self._image_1 = pygame.image.load("img/pacman_1.png").convert()
-		self._image_1 = pygame.transform.scale(self._image_1,(self.picwidth,self.picwidth))
-		self._image_2 = pygame.image.load("img/pacman_2.png").convert()
-		self._image_2 = pygame.transform.scale(self._image_2,(self.picwidth,self.picwidth))
-		self._image_3 = pygame.image.load("img/pacman_3.png").convert()
-		self._image_3 = pygame.transform.scale(self._image_3,(self.picwidth,self.picwidth))
+# 	def __init__(self):
+# 		self.life = 10
+# 		self.x = 0
+# 		self.y = 0
+# 		self.step = 8
+# 		self.angle = 0
+# 		self._image_0 = pygame.image.load("img/pacman.png").convert()
+# 		self._image_0 = pygame.transform.scale(self._image_0,(self.picwidth,self.picwidth))
+# 		self._image_1 = pygame.image.load("img/pacman_1.png").convert()
+# 		self._image_1 = pygame.transform.scale(self._image_1,(self.picwidth,self.picwidth))
+# 		self._image_2 = pygame.image.load("img/pacman_2.png").convert()
+# 		self._image_2 = pygame.transform.scale(self._image_2,(self.picwidth,self.picwidth))
+# 		self._image_3 = pygame.image.load("img/pacman_3.png").convert()
+# 		self._image_3 = pygame.transform.scale(self._image_3,(self.picwidth,self.picwidth))
 		
-		self.image = self._image_0
+# 		self.image = self._image_0
 
-		self.image_count=0
-		#initial position , no collision
+# 		self.image_count=0
+# 		#initial position , no collision
 		
-	def update(self):
-		#update position of player
-		self.angle = 0
+# 	def update(self):
+# 		#update position of player
+# 		self.angle = 0
 
-		if self.direction == 0:
-			self.x += self.step
-			self.angle = 0
+# 		if self.direction == 0:
+# 			self.x += self.step
+# 			self.angle = 0
 
-		if self.direction == 1:
-			self.x -= self.step
-			self.angle = 180
+# 		if self.direction == 1:
+# 			self.x -= self.step
+# 			self.angle = 180
 
-		if self.direction == 2:
-			self.y -= self.step
-			self.angle = 90
+# 		if self.direction == 2:
+# 			self.y -= self.step
+# 			self.angle = 90
 
-		if self.direction == 3:
-			self.y += self.step
-			self.angle = 270
+# 		if self.direction == 3:
+# 			self.y += self.step
+# 			self.angle = 270
 	
-		# if self.x > self.map_width-self.picwidth:
-		# 	self.x = self.map_width-self.picwidth
-		# if self.x < 0:
-		# 	self.x = 0
-		# if self.y > self.map_height-self.picwidth:
-		# 	self.y = self.map_height-self.picwidth
-		# if self.y < 0:
-		# 	self.y = 0
+# 		# if self.x > self.map_width-self.picwidth:
+# 		# 	self.x = self.map_width-self.picwidth
+# 		# if self.x < 0:
+# 		# 	self.x = 0
+# 		# if self.y > self.map_height-self.picwidth:
+# 		# 	self.y = self.map_height-self.picwidth
+# 		# if self.y < 0:
+# 		# 	self.y = 0
 
-		if self.image_count == 0:
-			self.image = pygame.transform.rotate(self._image_0, self.angle)
-		if self.image_count == 1:
-			self.image = pygame.transform.rotate(self._image_1, self.angle)
-		if self.image_count == 2:
-			self.image = pygame.transform.rotate(self._image_2, self.angle)
-		if self.image_count == 3:
-			self.image = pygame.transform.rotate(self._image_3, self.angle)
+# 		if self.image_count == 0:
+# 			self.image = pygame.transform.rotate(self._image_0, self.angle)
+# 		if self.image_count == 1:
+# 			self.image = pygame.transform.rotate(self._image_1, self.angle)
+# 		if self.image_count == 2:
+# 			self.image = pygame.transform.rotate(self._image_2, self.angle)
+# 		if self.image_count == 3:
+# 			self.image = pygame.transform.rotate(self._image_3, self.angle)
 
-	def show_x(self):
-		return self.x - self.picwidth/2
-	def show_y(self):
-		return self.y - self.picwidth/2
-	def map_x(self):
-		r = int(self.x/self.map_size)
-		return r
-	def map_y(self):
-		r = int(self.y/self.map_size)
-		return r
+	# def show_x(self):
+	# 	return self.x - self.picwidth/2
+	# def show_y(self):
+	# 	return self.y - self.picwidth/2
+	# def map_x(self):
+	# 	r = int(self.x/self.block_size)
+	# 	return r
+	# def map_y(self):
+	# 	r = int(self.y/self.block_size)
+	# 	return r
 
-	def moveRight(self):
-		self.direction = 0
+	# def moveRight(self):
+	# 	self.direction = 0
 	
-	def moveLeft(self):
-		self.direction = 1
+	# def moveLeft(self):
+	# 	self.direction = 1
 	
-	def moveUp(self):
-		self.direction = 2
+	# def moveUp(self):
+	# 	self.direction = 2
 
-	def moveDown(self):
-		self.direction = 3
+	# def moveDown(self):
+	# 	self.direction = 3
 	
-	def draw(self, surface):
-		surface.blit(self.image,(self.x-self.picwidth/2,self.y-self.picwidth/2))
+	# def draw(self, surface):
+	# 	surface.blit(self.image,(self.x-self.picwidth/2,self.y-self.picwidth/2))
 
 class Dot:
 	def __init__(self,x,y):
@@ -423,7 +423,7 @@ class Wall:
 		# pygame.draw.circle(surface, [0, 0, 255], (self.x, self.y), 5, 0)
 		pygame.draw.rect(surface, [0, 0, 255], (self.x-32, self.y-2.5, 64, 5))
 
-class Ghost(Player):
+class Ghost:
 	x = 320-32
 	y = 320-32
 	last_x = 320-32
@@ -438,9 +438,9 @@ class Ghost(Player):
 
 
 	color = [255,0,0]
-	map_size = 64
-	# map_x = int((x+picwidth/2)/map_size)
-	# map_y = int((y+picwidth/2)/map_size)
+	block_size = 64
+	# map_x = int((x+picwidth/2)/block_size)
+	# map_y = int((y+picwidth/2)/block_size)
 
 	def __init__(self):
 		self._image = pygame.image.load("img/Blinky.png").convert()
@@ -487,6 +487,16 @@ class Ghost(Player):
 			if self.y < 0:
 				self.y = 0
 
+	def show_x(self):
+		return self.x - self.picwidth/2
+	def show_y(self):
+		return self.y - self.picwidth/2
+	def map_x(self):
+		r = int(self.x/self.block_size)
+		return r
+	def map_y(self):
+		r = int(self.y/self.block_size)
+		return r
 	def draw(self, surface):
 		surface.blit(self.image,(self.x-self.picwidth/2,self.y-self.picwidth/2))
 
@@ -560,20 +570,24 @@ class App:
 	point = 0
 	teamB_point = 0
 
-	def __init__(self):
+	def __init__(self,Con):
 		self._running = True
 		self._display_surf = None
 		self._image_surf = None
 		self._text_surf = None
 		self._msg_box_surf = None
+		self.Con = Con
+		for i in list(self.Con.player):
+			if type(self.Con.player[i]) != type('a'):
+				self.sock = i
 		self.game = Game()
 		
 
 	def on_init(self):
-		pygame.mixer.pre_init(44100, -16, 1, 512)
-		pygame.init()
-		self._display_surf = pygame.display.set_mode((self.windowWidth, self.windowHeigh), pygame.HWSURFACE)
-		pygame.display.set_caption('Pacman')
+		# pygame.mixer.pre_init(44100, -16, 1, 512)
+		# pygame.init()
+		# self._display_surf = pygame.display.set_mode((self.windowWidth, self.windowHeigh), pygame.HWSURFACE)
+		# pygame.display.set_caption('Pacman')
 
 		pygame.font.init() # you have to call this at the start, if you want to use this module.
 		pygame.mixer.music.load('music/pacman_siren.wav')
@@ -605,7 +619,7 @@ class App:
 					del_c += 1
 					break
 		
-		self.add_player([255,255,0], "A") #0
+		# self.add_player([255,255,0], "A") #0
 		# self.add_player([255,0,0], "B") #1
 		# self.player[1].x = self.player[1].map_width-self.player[1].picwidth
 		# self.player[1].y = self.player[1].map_height-self.player[1].picwidth
@@ -620,8 +634,8 @@ class App:
 		self.game_time_sec = int(self.game_time_sec%10)
 		self.game_time_min = int(self.game_time_sec10/6)
 		self.game_time_sec10 = int(self.game_time_sec10%6)
-		
-		self.life_image = pygame.transform.scale(self.player[0]._image_0,(25, 25))
+		self.life_image = pygame.image.load("img/pacman.png")
+		self.life_image = pygame.transform.scale(self.life_image,(25, 25) )
 
 		self.on_loop()
 		self.on_render()
@@ -695,7 +709,7 @@ class App:
 				if (keys[pygame.K_ESCAPE]):
 					self._running = False
 
-		if self.player[0].life == 0:
+		if self.Con.player[self.sock].life == 0:
 			pygame.mixer.music.stop()
 			self.show_msg_box([125,255,125],"GameOver!(ESC to End)")
 			pygame.mixer.music.load('music/pacman_beginning.wav')
@@ -707,50 +721,50 @@ class App:
 				if (keys[pygame.K_ESCAPE]):
 					self._running = False
 		# for i in range(0,len(self.player)):
-		self.player[0].update()	
+		self.Con.player[self.sock].update()	
 
 		# self.player[1].update()
 		g_c = 0
 		for g in self.ghost:
 			if g.move_c == 0:
 				if g.power_mode:
-					g.direction = ChooseDir_PowerMode([g.map_x(),g.map_y()],[self.player[0].map_x(),self.player[0].map_y()])
+					g.direction = ChooseDir_PowerMode([g.map_x(),g.map_y()],[self.Con.player[self.sock].map_x(),self.Con.player[self.sock].map_y()])
 				else:
 					if g_c ==0:
-						g.direction = ChooseDir([g.map_x(),g.map_y()],[self.player[0].map_x(),self.player[0].map_y()])
+						g.direction = ChooseDir([g.map_x(),g.map_y()],[self.Con.player[self.sock].map_x(),self.Con.player[self.sock].map_y()])
 					else:
-						g.direction = ChooseDir2([g.map_x(),g.map_y()],[self.player[0].map_x(),self.player[0].map_y()])
+						g.direction = ChooseDir2([g.map_x(),g.map_y()],[self.Con.player[self.sock].map_x(),self.Con.player[self.sock].map_y()])
 					
 			g_c += 1
 			g.move_c = (g.move_c + 1)%16
 			g.update()
 
-		self.player[0].image_count = (self.player[0].image_count + 1) % 4
+		self.Con.player[self.sock].image_count = (self.Con.player[self.sock].image_count + 1) % 4
 
 		for i in range(0, len(self.wall_v)):
-			if self.game.isCollision_wall_v(self.wall_v[i].x, self.wall_v[i].y, self.player[0].show_x(), self.player[0].show_y(), 32):
-				self.player[0].x = self.player[0].last_x
-				self.player[0].y = self.player[0].last_y
-				self.player[0].image_count = 0
+			if self.game.isCollision_wall_v(self.wall_v[i].x, self.wall_v[i].y, self.Con.player[self.sock].show_x(), self.Con.player[self.sock].show_y(), 32):
+				self.Con.player[self.sock].x = self.Con.player[self.sock].last_x
+				self.Con.player[self.sock].y = self.Con.player[self.sock].last_y
+				self.Con.player[self.sock].image_count = 0
 				break
 
 		for i in range(0, len(self.wall_h)):
-			if self.game.isCollision_wall_h(self.wall_h[i].x, self.wall_h[i].y, self.player[0].show_x(), self.player[0].show_y(), 32):
-				self.player[0].y = self.player[0].last_y
-				self.player[0].y = self.player[0].last_y
-				self.player[0].image_count = 0
+			if self.game.isCollision_wall_h(self.wall_h[i].x, self.wall_h[i].y, self.Con.player[self.sock].show_x(), self.Con.player[self.sock].show_y(), 32):
+				self.Con.player[self.sock].y = self.Con.player[self.sock].last_y
+				self.Con.player[self.sock].y = self.Con.player[self.sock].last_y
+				self.Con.player[self.sock].image_count = 0
 				break
 
 		
-		self.player[0].last_x = self.player[0].x
-		self.player[0].last_y = self.player[0].y
+		self.Con.player[self.sock].last_x = self.Con.player[self.sock].x
+		self.Con.player[self.sock].last_y = self.Con.player[self.sock].y
 
 		for g in self.ghost:
 			g.last_x = g.x
 			g.last_y = g.y
 
 		for g in self.ghost:
-			if self.game.isCollision_ghost(g.x, g.y, self.player[0].show_x(), self.player[0].show_y(), 32):
+			if self.game.isCollision_ghost(g.x, g.y, self.Con.player[self.sock].show_x(), self.Con.player[self.sock].show_y(), 32):
 				if g.power_mode:
 					self.effect_eatghost.play()
 					time.sleep(300.0 / 1000.0)
@@ -764,19 +778,19 @@ class App:
 					self.ghost[1].x = 256-32
 					self.ghost[1].y = 320-32
 					self.ghost[1].pause_c = 64
-					self.player[0].life -= 1
+					self.Con.player[self.sock].life -= 1
 					print("gameover")
 					break
 		
 		for j in range(0, len(self.dot)):
-			if self.game.isCollision_dot(self.dot[j].x, self.dot[j].y, self.player[0].show_x(), self.player[0].show_y(), 32):
+			if self.game.isCollision_dot(self.dot[j].x, self.dot[j].y, self.Con.player[self.sock].show_x(), self.Con.player[self.sock].show_y(), 32):
 				del self.dot[j]	
 				self.effect_chomp.play()
 				self.point = self.point + 10
 				break
 		
 		for j in range(0, len(self.pellet)):
-			if self.game.isCollision_dot(self.pellet[j].x, self.pellet[j].y, self.player[0].show_x(), self.player[0].show_y(), 32):
+			if self.game.isCollision_dot(self.pellet[j].x, self.pellet[j].y, self.Con.player[self.sock].show_x(), self.Con.player[self.sock].show_y(), 32):
 				del self.pellet[j]
 				self.effect_eatpill.play()
 				pygame.mixer.music.stop()
@@ -823,14 +837,14 @@ class App:
 			self.dot[i].draw(self._display_surf)
 		for i in range(0, len(self.pellet)):
 			self.pellet[i].draw(self._display_surf)
-		for i in range(0,len(self.player)):
-			self.player[i].draw(self._display_surf)
+		# for i in range(0,len(self.Con.player[self.sock])):
+		self.Con.player[self.sock].draw(self._display_surf)
 		for i in range(0,len(self.ghost)):
 			self.ghost[i].draw(self._display_surf)
 
 		self._display_surf.blit(self._text_surf,(0,self.GameHeight))
 		
-		for i in range(0,self.player[0].life):
+		for i in range(0,self.Con.player[self.sock].life):
 			self._display_surf.blit(self.life_image,(self.GameWidth/2 + i*27.5, self.GameHeight))
 
 		
@@ -850,16 +864,16 @@ class App:
 			keys = pygame.key.get_pressed()
 
 			if (keys[pygame.K_RIGHT]) or (keys[pygame.K_KP6]):
-				self.player[0].moveRight()
+				self.Con.player[self.sock].moveRight()
 			
 			if (keys[pygame.K_LEFT]) or (keys[pygame.K_KP4]):
-				self.player[0].moveLeft()
+				self.Con.player[self.sock].moveLeft()
 
 			if (keys[pygame.K_UP]) or (keys[pygame.K_KP8]):
-				self.player[0].moveUp()
+				self.Con.player[self.sock].moveUp()
 	
 			if (keys[pygame.K_DOWN]) or (keys[pygame.K_KP2]):
-				self.player[0].moveDown()
+				self.Con.player[self.sock].moveDown()
 
 			if (keys[pygame.K_g]):
 				self.ghost[0].moveRight()
