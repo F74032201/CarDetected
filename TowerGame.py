@@ -4,7 +4,7 @@ import time
 from random import randint
 from tkinter import messagebox
 import os
-
+from mapp import *
 
 def ChangeColor(image,color):
 	w, h = image.get_size()
@@ -54,9 +54,24 @@ class Tower:
 	def draw(self, surface):
 		surface.blit(self.image,(self.x , self.y))
 
+class Wall:
+	x = 0
+	y = 0
+	def __init__(self,x,y):
+		self.x = x
+		self.y = y
+	def draw_v(self, surface):
+		# pygame.draw.circle(surface, [0, 0, 255], (self.x, self.y), 5, 0)
+		pygame.draw.rect(surface, [255, 0, 0], (self.x-2.5, self.y-32, 5, 64))
+	def draw_h(self, surface):
+		# pygame.draw.circle(surface, [0, 0, 255], (self.x, self.y), 5, 0)
+		pygame.draw.rect(surface, [255, 0, 0], (self.x-32, self.y-2.5, 64, 5))
+
+
 class App:	
 	tower = {}
-
+	wall_v = []
+	wall_h = []
 	def __init__(self,Con):
 		self.Con = Con
 		self._running = True
@@ -91,7 +106,7 @@ class App:
 		self.game_time_min = int(self.game_time_sec10/6)
 		self.game_time_sec10 = int(self.game_time_sec10%6)
 		self._text_surf = self.scorefont.render("Time : "+str(self.game_time_min)+": "+str(self.game_time_sec10)\
-		+str(self.game_time_sec), False, (255, 255, 255))
+		+str(self.game_time_sec), False, (0, 0, 0))
 		# self._running = True
 		# self.add_player([0,0,255], "A") #0
 		# # self.add_player([255,0,0], "B") #1
@@ -100,6 +115,14 @@ class App:
 		
 		# self._text_surf = self.scorefont.render("Score : Team_A : "+str(self.teamA_point)+"    Team_B : "+str(self.teamB_point), False, (255, 255, 255))
 		self.Tower_init()
+		self.init_wall()
+
+	def init_wall(self):
+		global wall_v, wall_h, block
+		for i in range(0, len(wall_v)):
+			self.wall_v.append(Wall(wall_v[i][0]*64, wall_v[i][1]*64+32))
+		for i in range(0, len(wall_h)):
+			self.wall_h.append(Wall(wall_h[i][0]*64+32, wall_h[i][1]*64))
 
 	def Tower_init(self):
 		for i in list(self.Con.player):	
@@ -155,12 +178,16 @@ class App:
 		self.game_time_min = int(self.game_time_sec10/6)
 		self.game_time_sec10 = int(self.game_time_sec10%6)
 		self._text_surf = self.scorefont.render("Time : "+str(self.game_time_min)+": "+str(self.game_time_sec10)\
-		+str(self.game_time_sec), False, (255, 255, 255))
+		+str(self.game_time_sec), False, (0,0,0))
 		pass
 
 	def on_render(self):
-		self._display_surf.fill((0,0,0))
-		self._display_surf.blit(self.bg_image,(0, 0))
+		self._display_surf.fill((255,255,255))
+		# self._display_surf.blit(self.bg_image,(0, 0))
+		for i in range(0,len(self.wall_v)):
+			self.wall_v[i].draw_v(self._display_surf)
+		for i in range(0,len(self.wall_h)):
+			self.wall_h[i].draw_h(self._display_surf)
 		for i in list(self.tower):
 			self.tower[i].draw(self._display_surf)
 		for i in list(self.Con.player):
