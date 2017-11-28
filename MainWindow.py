@@ -97,6 +97,7 @@ class GameThread(Thread):
 				self.Con.player[idx].game_init()
 				# ChangeColor(self.Con.player[idx].image,self.Con.player[idx].Color)
 		self.App.on_execute()
+		del self.App
 
 
 def Exit(r):
@@ -201,7 +202,7 @@ if __name__ == "__main__":
 	#create camera obj
 	cap = cv2.VideoCapture(1)
 
-	cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1080);
+	cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280);
 	cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720);
 
 	framethread = myThreadFrame(cap)
@@ -253,8 +254,8 @@ if __name__ == "__main__":
 	# main_frame_player_teamB = LabelFrame(main_frame_player_team,text = "Team B",foreground="red")
 	# main_frame_player_teamB.pack(side = RIGHT)
 	
-	border_H = 9
-	border_W = 9
+	border_H = 9+2
+	border_W = 9+2
 	block_size = 64
 	#create connection obj
 	Con = ServerConnection(main_frame_player_team, chatbox , UP, DP,border_H,border_W,block_size)

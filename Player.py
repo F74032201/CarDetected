@@ -8,6 +8,8 @@ import imutils
 from pygame.locals import *
 import pygame
 
+from pacman import *
+
 
 class PositionThread(Thread):
 	def __init__(self, player):
@@ -81,6 +83,7 @@ class Player(object):
 		self.CarPosStr = StringVar()
 		self.CarPosStr.set(str(self.pos))
 		self.CarPos = Label(self.frame,textvariable = self.CarPosStr).pack(side = LEFT)
+
 	def delete(self):
 		self.frame.destroy()
 
@@ -195,24 +198,32 @@ class Player(object):
 
 			self.pos = (int(lastX),int(lastY))
 			self.x, self.y = self.pos
-			self.x, self.y = (int(self.x / 512 * self.border_W * self.block_size - self.block_size/2)\
-				,int(self.y / 512 * self.border_H * self.block_size - self.block_size/2))
-			self.CarPosStr.set(str((int(self.x + self.block_size/2), int(self.y + self.block_size/2))))
+			self.x, self.y = (int(self.x / 512 * self.border_W * self.block_size)\
+				,int(self.y / 512 * self.border_H * self.block_size))
+			self.x, self.y = (self.x - self.block_size, self.y - self.block_size)
+			self.CarPosStr.set(str((self.x, self.y)))
 			# print(self.pos)
 
 	def game_init(self):
+
+		self.move_x = 0
+		self.move_y = 0
 		self.life = 10
 		self.step = 8
 
 		self._image_0 = pygame.image.load("img/pacman.png").convert()
 		self._image_0 = pygame.transform.scale(self._image_0,(self.picwidth,self.picwidth))
+		eraseBG(self._image_0)
 		self._image_1 = pygame.image.load("img/pacman_1.png").convert()
 		self._image_1 = pygame.transform.scale(self._image_1,(self.picwidth,self.picwidth))
+		eraseBG(self._image_1)
 		self._image_2 = pygame.image.load("img/pacman_2.png").convert()
 		self._image_2 = pygame.transform.scale(self._image_2,(self.picwidth,self.picwidth))
+		eraseBG(self._image_2)
 		self._image_3 = pygame.image.load("img/pacman_3.png").convert()
 		self._image_3 = pygame.transform.scale(self._image_3,(self.picwidth,self.picwidth))
-		
+		eraseBG(self._image_3)
+
 		self.image = self._image_0
 
 		self.image_count=0
@@ -220,32 +231,25 @@ class Player(object):
 	def update(self):
 		#update position of player
 
+		self.checkDir()
+
 		self.angle = 0
 
 		if self.direction == 0:
-			self.x += self.step
+			# self.x += self.step
 			self.angle = 0
 
 		if self.direction == 1:
-			self.x -= self.step
+			# self.x -= self.step
 			self.angle = 180
 
 		if self.direction == 2:
-			self.y -= self.step
+			# self.y -= self.step
 			self.angle = 90
 
 		if self.direction == 3:
-			self.y += self.step
+			# self.y += self.step
 			self.angle = 270
-	
-		# if self.x > self.map_width-self.picwidth:
-		# 	self.x = self.map_width-self.picwidth
-		# if self.x < 0:
-		# 	self.x = 0
-		# if self.y > self.map_height-self.picwidth:
-		# 	self.y = self.map_height-self.picwidth
-		# if self.y < 0:
-		# 	self.y = 0
 
 		if self.image_count == 0:
 			self.image = pygame.transform.rotate(self._image_0, self.angle)
@@ -257,8 +261,10 @@ class Player(object):
 			self.image = pygame.transform.rotate(self._image_3, self.angle)
 
 	def show_x(self):
+		# return self.x
 		return self.x - self.picwidth/2
 	def show_y(self):
+		# return self.y
 		return self.y - self.picwidth/2
 	def map_x(self):
 		r = int(self.x/self.block_size)
@@ -266,6 +272,25 @@ class Player(object):
 	def map_y(self):
 		r = int(self.y/self.block_size)
 		return r
+
+	def checkDir(self):
+		self.move_x = self.move_x + self.x - self.last_x
+		self.move_y = self.move_y + self.y - self.last_y
+		if abs(self.move_x) > abs(self.move_y) and abs(self.move_x) > 16:
+			if self.move_x > 0:
+				self.moveRight()
+			else:
+				self.moveLeft()
+			self.move_x = 0
+			self.move_y = 0
+		elif abs(self.move_y) > 16:
+			if self.move_y > 0:
+				self.moveDown()
+			else:
+				self.moveUp()
+			self.move_x = 0
+			self.move_y = 0
+		
 
 	def moveRight(self):
 		self.direction = 0

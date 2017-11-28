@@ -117,7 +117,7 @@ class ServerConnection:
 			                self.broadcast_data(sock,data+'\r') 
 
 			            elif 'Position' in data:
-			            	self.ser_send_data(sock,"POS:"+str((int(self.player[sock].x + self.block_size/2),int(self.player[sock].y + self.block_size/2))))
+			            	self.ser_send_data(sock,"POS:"+str((int(self.player[sock].x),int(self.player[sock].y))))
 
 			            #sent to specific client   
 			            elif '|' in data:

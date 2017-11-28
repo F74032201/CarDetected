@@ -22,48 +22,13 @@ class Vertex:
 		self.adj = []
 		self.src = None
 
-
-_sound_library = {}
-def play_sound(path):
-  global _sound_library
-  sound = _sound_library.get(path)
-  if sound == None:
-    canonicalized_path = path.replace('/', os.sep).replace('\\', os.sep)
-    sound = pygame.mixer.Sound(canonicalized_path)
-    _sound_library[path] = sound
-  sound.play()
-# def Adjacency():
-# 	global w, h, wall_v, wall_h, vertexlist, block
-
-	
-
-# 	for i in range(0, w):
-# 		for j in range(0, h):
-# 			v = Vertex([i,j])
-# 			if i!=0:
-# 				if not ([j,i] in wall_v):
-# 					v.adj.append([i-1,j])
-# 			if i!=(w-1):
-# 				if not ([j,i+1] in wall_v):
-# 					v.adj.append([i+1,j])
-# 			if j!=0:
-# 				if not ([j,i] in wall_h):
-# 					v.adj.append([i,j-1])
-# 			if j!=(h-1):
-# 				if not ([j+1,i] in wall_h):
-# 					v.adj.append([i,j+1])
-# 			vertexlist.append(v)
-# 			if len(v.adj) == 0: #check if block
-# 				block.append(v.vid)
-
-# 			print(v.vid)
-# 			print(v.adj)
-# 	# for v in vertexlist:
 def Adjacency():
 	global w, h, wall_v, wall_h, vertexlist, block
 
 	# vertexlist = [Vertex()]
 
+	block = []
+	vertexlist=[]
 	for i in range(0, w):
 		for j in range(0, h):
 			v = Vertex([i,j])
@@ -89,16 +54,12 @@ def Adjacency():
 		if len(v.adj) == 0: #check if block
 			block.append(v.vid)
 
-		# print(v.vid)
-		# for a in v.adj:
-		# 	print(a.vid, end=" ")
-		# print()
-
-		
 def ChooseDir(ghost,pacman):
 	global vertexlist, block, w, h
 
 	if ghost == pacman:
+		return -1
+	if (pacman in block) or (pacman[0]<0 or pacman[1]<0 or pacman[0]>w-1 or pacman[1]>h-1 ):
 		return -1
 	g_x = ghost[0]
 	g_y = ghost[1]
@@ -146,6 +107,8 @@ def ChooseDir2(ghost,pacman):
 
 	if ghost == pacman:
 		return -1
+	if (pacman in block) or (pacman[0]<0 or pacman[1]<0 or pacman[0]>w-1 or pacman[1]>h-1 ):
+		return -1
 	g_x = ghost[0]
 	g_y = ghost[1]
 	p_x = pacman[0]
@@ -192,7 +155,8 @@ def ChooseDir2(ghost,pacman):
 		return 0
 def ChooseDir_PowerMode(ghost,pacman):
 	global vertexlist, block, w, h
-
+	if (pacman in block) or (pacman[0]<0 or pacman[1]<0 or pacman[0]>w-1 or pacman[1]>h-1 ):
+		return -1
 	g_x = ghost[0]
 	g_y = ghost[1]
 	p_x = pacman[0]
@@ -292,106 +256,6 @@ def eraseBG(image):
 			if image.get_at((x, y))[0] == 0 and image.get_at((x, y))[1] == 0 and image.get_at((x, y))[2] == 0:
 				image.set_at((x, y), pygame.Color(0, 0, 0, 0))
 	image.set_colorkey( (0,0,0), RLEACCEL )
-# class Player:
-# 	x = 256+32
-# 	y = 384+32
-# 	last_x = 256+32
-# 	last_y = 384+32
-# 	step = 0
-# 	direction = 0
-# 	map_width = 576
-# 	map_height = 576
-# 	picwidth =32
-
-# 	color = [0,0,0]
-# 	team = None
-# 	block_size = 64
-# 	# map_x = int(x/block_size)
-# 	# map_y = int(y/block_size)player
-	
-# 	def __init__(self):
-# 		self.life = 10
-# 		self.x = 0
-# 		self.y = 0
-# 		self.step = 8
-# 		self.angle = 0
-# 		self._image_0 = pygame.image.load("img/pacman.png").convert()
-# 		self._image_0 = pygame.transform.scale(self._image_0,(self.picwidth,self.picwidth))
-# 		self._image_1 = pygame.image.load("img/pacman_1.png").convert()
-# 		self._image_1 = pygame.transform.scale(self._image_1,(self.picwidth,self.picwidth))
-# 		self._image_2 = pygame.image.load("img/pacman_2.png").convert()
-# 		self._image_2 = pygame.transform.scale(self._image_2,(self.picwidth,self.picwidth))
-# 		self._image_3 = pygame.image.load("img/pacman_3.png").convert()
-# 		self._image_3 = pygame.transform.scale(self._image_3,(self.picwidth,self.picwidth))
-		
-# 		self.image = self._image_0
-
-# 		self.image_count=0
-# 		#initial position , no collision
-		
-# 	def update(self):
-# 		#update position of player
-# 		self.angle = 0
-
-# 		if self.direction == 0:
-# 			self.x += self.step
-# 			self.angle = 0
-
-# 		if self.direction == 1:
-# 			self.x -= self.step
-# 			self.angle = 180
-
-# 		if self.direction == 2:
-# 			self.y -= self.step
-# 			self.angle = 90
-
-# 		if self.direction == 3:
-# 			self.y += self.step
-# 			self.angle = 270
-	
-# 		# if self.x > self.map_width-self.picwidth:
-# 		# 	self.x = self.map_width-self.picwidth
-# 		# if self.x < 0:
-# 		# 	self.x = 0
-# 		# if self.y > self.map_height-self.picwidth:
-# 		# 	self.y = self.map_height-self.picwidth
-# 		# if self.y < 0:
-# 		# 	self.y = 0
-
-# 		if self.image_count == 0:
-# 			self.image = pygame.transform.rotate(self._image_0, self.angle)
-# 		if self.image_count == 1:
-# 			self.image = pygame.transform.rotate(self._image_1, self.angle)
-# 		if self.image_count == 2:
-# 			self.image = pygame.transform.rotate(self._image_2, self.angle)
-# 		if self.image_count == 3:
-# 			self.image = pygame.transform.rotate(self._image_3, self.angle)
-
-	# def show_x(self):
-	# 	return self.x - self.picwidth/2
-	# def show_y(self):
-	# 	return self.y - self.picwidth/2
-	# def map_x(self):
-	# 	r = int(self.x/self.block_size)
-	# 	return r
-	# def map_y(self):
-	# 	r = int(self.y/self.block_size)
-	# 	return r
-
-	# def moveRight(self):
-	# 	self.direction = 0
-	
-	# def moveLeft(self):
-	# 	self.direction = 1
-	
-	# def moveUp(self):
-	# 	self.direction = 2
-
-	# def moveDown(self):
-	# 	self.direction = 3
-	
-	# def draw(self, surface):
-	# 	surface.blit(self.image,(self.x-self.picwidth/2,self.y-self.picwidth/2))
 
 class Dot:
 	def __init__(self,x,y):
@@ -439,11 +303,17 @@ class Ghost:
 
 	color = [255,0,0]
 	block_size = 64
-	# map_x = int((x+picwidth/2)/block_size)
-	# map_y = int((y+picwidth/2)/block_size)
+	_image_src = "img/Blinky.png"
+	power_mode_image_count = 0
+	_image_poewr_mode1 = pygame.image.load("img/ghost_powermode1.png")
+	_image_poewr_mode1 = pygame.transform.scale(_image_poewr_mode1,(picwidth,picwidth))
+	eraseBG(_image_poewr_mode1)
+	_image_poewr_mode2 = pygame.image.load("img/ghost_powermode2.png")
+	_image_poewr_mode2 = pygame.transform.scale(_image_poewr_mode2,(picwidth,picwidth))
+	eraseBG(_image_poewr_mode2)
 
 	def __init__(self):
-		self._image = pygame.image.load("img/Blinky.png").convert()
+		self._image = pygame.image.load(self._image_src)
 		self._image = pygame.transform.scale(self._image,(self.picwidth,self.picwidth))
 		eraseBG(self._image)
 		self.image = self._image
@@ -486,6 +356,12 @@ class Ghost:
 				self.y = self.map_height-self.picwidth
 			if self.y < 0:
 				self.y = 0
+
+		if self.power_mode:
+			if self.power_mode_image_count < 2:
+				self.image = self._image_poewr_mode1
+			else:
+				self.image = self._image_poewr_mode2
 
 	def show_x(self):
 		return self.x - self.picwidth/2
@@ -584,16 +460,11 @@ class App:
 		
 
 	def on_init(self):
-		# pygame.mixer.pre_init(44100, -16, 1, 512)
-		# pygame.init()
-		# self._display_surf = pygame.display.set_mode((self.windowWidth, self.windowHeigh), pygame.HWSURFACE)
-		# pygame.display.set_caption('Pacman')
 
 		pygame.font.init() # you have to call this at the start, if you want to use this module.
 		pygame.mixer.music.load('music/pacman_siren.wav')
 
 		self.effect_beginning = pygame.mixer.Sound('music/pacman_beginning.wav')
-		# self.effect_siren = pygame.mixer.Sound('music/pacman_siren.wav')
 		self.effect_chomp = pygame.mixer.Sound('music/pacman_chomp.wav')
 		self.effect_eatpill = pygame.mixer.Sound('music/pacman_eatpill.wav')
 		self.effect_death = pygame.mixer.Sound('music/pacman_death.wav')
@@ -619,14 +490,12 @@ class App:
 					del_c += 1
 					break
 		
-		# self.add_player([255,255,0], "A") #0
-		# self.add_player([255,0,0], "B") #1
-		# self.player[1].x = self.player[1].map_width-self.player[1].picwidth
-		# self.player[1].y = self.player[1].map_height-self.player[1].picwidth
-
 		self.add_ghost([255,0,0], 320-32, 320-32)
 		self.add_ghost([127,0,0], 256-32, 320-32)
+		self.ghost[1]._image_src = "img/Inky.png"
+		self.ghost[1].__init__()
 		self.ghost[1].pause_c = 64
+
 		self._running = True
 		self.start_ticks = pygame.time.get_ticks()
 		self.game_time_sec = int((pygame.time.get_ticks() - self.start_ticks)/1000) # milliseconds to seconds
@@ -681,7 +550,6 @@ class App:
 		self.ghost[self.ghost_num].x = x
 		self.ghost[self.ghost_num].y = y
 		self.ghost[self.ghost_num].color = color
-		# ChangeColor(self.ghost[self.ghost_num]._image,self.ghost[self.ghost_num].color)
 		self.ghost_num += 1
 
 	def show_msg_box(self, color, msg):
@@ -715,15 +583,12 @@ class App:
 			pygame.mixer.music.load('music/pacman_beginning.wav')
 			pygame.mixer.music.play(-1, 0.0)
 			while self._running:
-				# time.sleep(300.0 / 1000.0)
 				pygame.event.pump()
 				keys = pygame.key.get_pressed()
 				if (keys[pygame.K_ESCAPE]):
 					self._running = False
-		# for i in range(0,len(self.player)):
 		self.Con.player[self.sock].update()	
 
-		# self.player[1].update()
 		g_c = 0
 		for g in self.ghost:
 			if g.move_c == 0:
@@ -741,19 +606,19 @@ class App:
 
 		self.Con.player[self.sock].image_count = (self.Con.player[self.sock].image_count + 1) % 4
 
-		for i in range(0, len(self.wall_v)):
-			if self.game.isCollision_wall_v(self.wall_v[i].x, self.wall_v[i].y, self.Con.player[self.sock].show_x(), self.Con.player[self.sock].show_y(), 32):
-				self.Con.player[self.sock].x = self.Con.player[self.sock].last_x
-				self.Con.player[self.sock].y = self.Con.player[self.sock].last_y
-				self.Con.player[self.sock].image_count = 0
-				break
+		# for i in range(0, len(self.wall_v)):
+		# 	if self.game.isCollision_wall_v(self.wall_v[i].x, self.wall_v[i].y, self.Con.player[self.sock].show_x(), self.Con.player[self.sock].show_y(), 32):
+		# 		self.Con.player[self.sock].x = self.Con.player[self.sock].last_x
+		# 		self.Con.player[self.sock].y = self.Con.player[self.sock].last_y
+		# 		self.Con.player[self.sock].image_count = 0
+		# 		break
 
-		for i in range(0, len(self.wall_h)):
-			if self.game.isCollision_wall_h(self.wall_h[i].x, self.wall_h[i].y, self.Con.player[self.sock].show_x(), self.Con.player[self.sock].show_y(), 32):
-				self.Con.player[self.sock].y = self.Con.player[self.sock].last_y
-				self.Con.player[self.sock].y = self.Con.player[self.sock].last_y
-				self.Con.player[self.sock].image_count = 0
-				break
+		# for i in range(0, len(self.wall_h)):
+		# 	if self.game.isCollision_wall_h(self.wall_h[i].x, self.wall_h[i].y, self.Con.player[self.sock].show_x(), self.Con.player[self.sock].show_y(), 32):
+		# 		self.Con.player[self.sock].y = self.Con.player[self.sock].last_y
+		# 		self.Con.player[self.sock].y = self.Con.player[self.sock].last_y
+		# 		self.Con.player[self.sock].image_count = 0
+		# 		break
 
 		
 		self.Con.player[self.sock].last_x = self.Con.player[self.sock].x
@@ -799,7 +664,8 @@ class App:
 				self.point = self.point + 100
 				for g in self.ghost:
 					g.power_mode =True
-					ChangeColor(g._image, [255,255,255])
+					# ChangeColor(g._image, [255,255,255])
+					g.power_mode_image_count = 0
 				self.power_mode_start_time = pygame.time.get_ticks()
 				break		
 		power_mode_off_c = 0
@@ -812,6 +678,9 @@ class App:
 						pygame.mixer.music.stop()
 						pygame.mixer.music.load('music/pacman_siren.wav')
 						pygame.mixer.music.play(-1, 0.0)
+				else:
+					if (pygame.time.get_ticks() - self.power_mode_start_time)/1000 >= 7:
+						g.power_mode_image_count = (g.power_mode_image_count + 1) % 4
 			else:
 				power_mode_off_c += 1
 		
@@ -852,7 +721,16 @@ class App:
 		
 	def on_cleanup(self):
 		pygame.quit()
-
+		for i in range(0,len(self.wall_v)):
+			del self.wall_v[0]
+		for i in range(0,len(self.wall_h)):
+			del self.wall_h[0]
+		for i in range(0, len(self.dot)):
+			del self.dot[0]
+		for i in range(0, len(self.pellet)):
+			del self.pellet[0]
+		for i in range(0,len(self.ghost)):
+			del self.ghost[0]
 	def on_execute(self):
 		if self.on_init() == False:
 			self._running = False
