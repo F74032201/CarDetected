@@ -703,7 +703,3 @@ class App:
 			
 			time.sleep(100.0 / 1000.0)
 		self.on_cleanup()
-
-if __name__ == "__main__" :
-	theApp = App()
-	theApp.on_execute()
