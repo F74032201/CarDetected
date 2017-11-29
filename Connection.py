@@ -15,7 +15,7 @@ class ServerConnection:
 		block_size: Width of a lattice you've set.
 	"""
 	def __init__(self,root,chatbox,UP,DP,border_H,border_W,block_size):
-    	self.UP = UP
+		self.UP = UP
 		self.DP = DP
 		self.root = root
 		self.border_H = border_H
@@ -104,45 +104,45 @@ class ServerConnection:
 			# Get the list sockets which are ready to be read through select.
 			CONNECTION_LIST = []
 			for i in self.player:
-			    CONNECTION_LIST.append(i)
+				CONNECTION_LIST.append(i)
 			read_sockets,write_sockets,error_sockets = select.select(CONNECTION_LIST,[],[])
 
 			for sock in read_sockets:
-			    # New connection
-			    if sock == self.server_socket:
-			        # Handle the case in which there is a new connection recieved through server_socket
-			        sockfd, addr = self.server_socket.accept()
-			        self.player[sockfd] = ''
-			        print ("[%s:%s] entered room\n" % addr)
-			     
-			    # Some incoming message from a client.
-			    else:
-			        try:
-			            """Distinguish the message from clients.
+				# New connection
+				if sock == self.server_socket:
+					# Handle the case in which there is a new connection recieved through server_socket
+					sockfd, addr = self.server_socket.accept()
+					self.player[sockfd] = ''
+					print ("[%s:%s] entered room\n" % addr)
+				 
+				# Some incoming message from a client.
+				else:
+					try:
+						"""Distinguish the message from clients.
 						In Windows, sometimes when a TCP program closes abruptly,
-			            a "Connection reset by peer" exception will be thrown.
-			            """
+						a "Connection reset by peer" exception will be thrown.
+						"""
 						data = sock.recv(self.RECV_BUFFER).decode('utf-8')
-			    
-			            if 'Register' in data:			# New player join the game.
-			                sock.send("Master|Client hello!\r".encode(encoding='utf-8'))
-			                # Create player object.
-			                self.player[sock] =  Player(self.root,data[10:],self.UP,self.DP,\
+				
+						if 'Register' in data:			# New player join the game.
+							sock.send("Master|Client hello!\r".encode(encoding='utf-8'))
+							# Create player object.
+							self.player[sock] =  Player(self.root,data[10:],self.UP,self.DP,\
 								self.border_H,self.border_W,self.block_size)
-			                print(self.player[sock])
+							print(self.player[sock])
 
-			            elif 'Broadcast' in data:
-			                self.broadcast_data(sock,data+'\r') 
+						elif 'Broadcast' in data:
+							self.broadcast_data(sock,data+'\r') 
 
-			            elif 'Position' in data:		# Send player's position back.
-			            	self.ser_send_data(sock,"POS:"+str((int(self.player[sock].x),int(self.player[sock].y))))
+						elif 'Position' in data:		# Send player's position back.
+							self.ser_send_data(sock,"POS:"+str((int(self.player[sock].x),int(self.player[sock].y))))
   
-			            elif '|' in data:				# Message transmitting between players.
-			                self.send_data(sock,data+'\r')
-			                
-			        except:
-			            self.DELETE(sock)
-			            continue
+						elif '|' in data:				# Message transmitting between players.
+							self.send_data(sock,data+'\r')
+							
+					except:
+						self.DELETE(sock)
+						continue
 		self.server_socket.close()
 		print("s close")
 

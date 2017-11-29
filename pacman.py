@@ -376,6 +376,30 @@ class Game:
 				return True
 		return False
 
+	def isCollision_wall_v(self,x1,y1,x2,y2,bsize):
+		if x1 >= x2 and x1 <= x2+bsize:
+			if y1 >= y2 and y1 <= y2+bsize:
+				return True
+		if x1 >= x2 and x1 <= x2+bsize:
+			if y1+self.picwidth >= y2 and y1+self.picwidth <= y2+bsize:
+				return True
+		if x1 >= x2 and x1 <= x2+bsize:
+			if y1-self.picwidth >= y2 and y1-self.picwidth <= y2+bsize:
+				return True
+		return False
+
+	def isCollision_wall_h(self,x1,y1,x2,y2,bsize):
+		if x1 >= x2 and x1 <= x2+bsize:
+			if y1 >= y2 and y1 <= y2+bsize:
+				return True
+		if x1+self.picwidth >= x2 and x1+self.picwidth <= x2+bsize:
+			if y1 >= y2 and y1 <= y2+bsize:
+				return True
+		if x1-self.picwidth >= x2 and x1-self.picwidth <= x2+bsize:
+			if y1 >= y2 and y1 <= y2+bsize:
+				return True
+		return False
+
 class App:
 
 	GameWidth = 576
@@ -398,8 +422,8 @@ class App:
 		self._text_surf = None
 		self._msg_box_surf = None
 		self.Con = Con
-		self.GameHeight = self.Con.border_H * self.Con.block_size
-		self.GameWidth = self.Con.border_W * self.Con.block_size
+		self.GameHeight = (self.Con.border_H - 2) * self.Con.block_size
+		self.GameWidth = (self.Con.border_W -2) * self.Con.block_size
 		self.windowHeigh = self.GameHeight + self.textsurfHeight
 		self.windowWidth = self.GameWidth
 		for i in list(self.Con.player):
