@@ -11,7 +11,7 @@ from mapp import *
 def ChangeColor(image,color):
 	w, h = image.get_size()
 	b, g, r = color
-	o_r, o_g, o_b, _ = image.get_at((16, 16))
+	o_r, o_g, o_b, _ = image.get_at((16, 14))
 	for x in range(w):
 		for y in range(h):
 			if image.get_at((x, y))[0] == o_r and image.get_at((x, y))[1] == o_g and image.get_at((x, y))[2] == o_b:
@@ -207,7 +207,7 @@ class App:
 					ChangeColor(self.tower[i].image,self.Con.player[i].Color)
 				self.Con.player[i].draw(self._display_surf)
 				self.tower[i].draw(self._display_surf)
-		self._display_surf.blit(self._text_surf,(0,self.GameHeigh))
+		self._display_surf.blit(self._text_surf,(0,self.GameHeigh+7))
 		pygame.display.flip()
 		
 	def on_cleanup(self):
