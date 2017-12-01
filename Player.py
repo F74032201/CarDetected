@@ -27,7 +27,7 @@ class SetcolorThread(Thread):
 		self.player = player
 
 	def run(self):
-		self.player.RefreshColor()
+		self.player.refresh_color()
 
 class Player(object):
 	"""Collect information of player."""
@@ -191,13 +191,13 @@ class Player(object):
 		# eraseBG(self._image_0)
 		self._image_1 = pygame.image.load("img/pacman_1.png").convert()
 		self._image_1 = pygame.transform.scale(self._image_1, (self.picwidth, self.picwidth))
-		# eraseBG(self._image_1)
+		eraseBG(self._image_1)
 		self._image_2 = pygame.image.load("img/pacman_2.png").convert()
 		self._image_2 = pygame.transform.scale(self._image_2, (self.picwidth, self.picwidth))
-		# eraseBG(self._image_2)
+		eraseBG(self._image_2)
 		self._image_3 = pygame.image.load("img/pacman_3.png").convert()
 		self._image_3 = pygame.transform.scale(self._image_3, (self.picwidth, self.picwidth))
-		# eraseBG(self._image_3)
+		eraseBG(self._image_3)
 
 		self.image = self._image_0
 

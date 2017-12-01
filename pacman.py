@@ -602,7 +602,7 @@ class App:
 		# Check if ghost has catch player or not
 		for g in self.ghost:
 			if self.game.isCollision_ghost(g.x, g.y, \
-				self.Con.player[self.sock].x, self.Con.player[self.sock].y, 30):
+				self.Con.player[self.sock].x, self.Con.player[self.sock].y, 18):
 				if g.power_mode:
 					# in power_mode ghost was eaten.
 					self.effect_eatghost.play()
@@ -676,7 +676,7 @@ class App:
 
 	def on_render(self):
 		"""draw game screen in this function"""
-		self._display_surf.fill((255, 255, 255))
+		self._display_surf.fill((0, 0, 0))
 		for i in range(0,len(self.wall_v)):
 			self.wall_v[i].draw_v(self._display_surf)
 		for i in range(0,len(self.wall_h)):
@@ -689,7 +689,7 @@ class App:
 		for i in range(0,len(self.ghost)):
 			self.ghost[i].draw(self._display_surf)
 
-		self._display_surf.blit(self._text_surf,(0,self.GameHeight))
+		self._display_surf.blit(self._text_surf,(0,self.GameHeight+7))
 		
 		for i in range(0,self.Con.player[self.sock].life):
 			self._display_surf.blit(self.life_image,(self.GameWidth/2 + i*27.5, self.GameHeight))
