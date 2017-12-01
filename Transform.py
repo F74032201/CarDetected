@@ -47,7 +47,7 @@ class TransformMaze(object):
 			if cv2.waitKey(1) & 0xFF == ord('q'):
 				show_flag = False
 				break
-		cv2.waitKey(1)
+		cv2.waitKey(1)		# For opencv imshow bug
 		cv2.waitKey(1)
 		cv2.waitKey(1)
 		cv2.waitKey(1)
@@ -99,7 +99,7 @@ class TransformMaze(object):
 			centres.append((int(moments['m10']/moments['m00']), int(moments['m01']/moments['m00'])))
 		for x in range(0, len(centres)):
 			cv2.circle(self.dst, centres[x], 5, (0, 0, 150), -1)
-		print(centres)
+		# print(centres)
 		# If numbers of contours aren't 4, then record the last points.
 		if len(centres) == 4:
 			self.lastpoint = centres

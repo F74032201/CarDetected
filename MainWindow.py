@@ -171,7 +171,7 @@ if __name__ == "__main__":
 	win = Tk()
 
 	#create camera obj
-	cap = cv2.VideoCapture(1)
+	cap = cv2.VideoCapture(0)
 
 	cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
 	cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
@@ -179,9 +179,9 @@ if __name__ == "__main__":
 	framethread = thread_frame(cap)
 	framethread.start()
 	UP = TransformMaze(framethread)
-	UP.Color = [36, 11, 185]    # red (default)
+	UP.color = [34, 18, 173]    # red (default) [b, g ,r]
 	DP = TransformMaze(framethread)
-	DP.Color = [137, 76, 10]    # blue (default)
+	DP.color = [132, 80, 35]    # blue (default)
 	main_frame = Frame(win)
 	main_frame.pack()
 

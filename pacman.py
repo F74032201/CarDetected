@@ -233,7 +233,8 @@ def eraseBG(image): # set background opacity
 	w, h = image.get_size()
 	for x in range(w):
 		for y in range(h):
-			if image.get_at((x, y))[0] == 0 and image.get_at((x, y))[1] == 0 and image.get_at((x, y))[2] == 0:
+			if image.get_at((x, y))[0] == 0 and image.get_at((x, y))[1] == 0 \
+				and image.get_at((x, y))[2] == 0:
 				image.set_at((x, y), pygame.Color(0, 0, 0, 0))
 	image.set_colorkey( (0,0,0), RLEACCEL )
 
@@ -362,12 +363,32 @@ class Ghost:
 class Game:
 	"""providing game logic"""
 	picwidth = 32
-	def isCollision_ghost(self, x1, y1, x2, y2, bsize):
+	def isCollision_ghost(self, ghost_x, ghost_y, player_x, player_y, bsize):
 		
-		if x1 >= x2 and x1 <= x2+bsize:
-			if y1 >= y2 and y1 <= y2+bsize:
-				return True
+		if abs(ghost_x - player_x) <= bsize and abs(ghost_y - player_y) <= bsize+4:
+			return True
+		if abs(ghost_x - player_x) <= bsize+4 and abs(ghost_y - player_y) <= bsize:
+			return True
 		return False
+		
+		# if x1 >= x2 and x1 <= x2+bsize:
+		# 	if y1 >= y2 and y1 <= y2+bsize:
+		# 		return True
+		# return False
+
+		# if x1 >= x2 and x1 <= x2+bsize:
+		# 	if y1 >= y2 and y1 <= y2+bsize:
+		# 		return True
+		# if x1+self.picwidth >= x2 and x1+self.picwidth <= x2+bsize:
+		# 	if y1 >= y2 and y1 <= y2+bsize:
+		# 		return True
+		# if x1 >= x2 and x1 <= x2+bsize:
+		# 	if y1+self.picwidth >= y2 and y1+self.picwidth <= y2+bsize:
+		# 		return True
+		# if x1+self.picwidth >= x2 and x1+self.picwidth <= x2+bsize:
+		# 	if y1+self.picwidth >= y2 and y1+self.picwidth <= y2+bsize:
+		# 		return True
+		# return False
 
 	def isCollision_dot(self, x1, y1, x2, y2, bsize):
 		
@@ -490,7 +511,8 @@ class App:
 		for i in range(0, int(self.GameWidth/32)):
 			for j in range(0, int(self.GameHeight/32)):
 				if not([i/2,j/2] in block or [i, j] in [[6, 8], [7, 8], [8, 8], \
-					[9, 8], [10, 8], [8, 7], [0, 0], [0, 16], [16, 0], [16, 16], [8, 12]]):
+					[9, 8], [10, 8], [8, 7], [0, 0], [0, 16], [16, 0], [16, 16], \
+					[self.Con.player[self.sock].map_x()*2, self.Con.player[self.sock].map_y()*2]]):
 					self.dot.append(Dot((i+1)*32,(j+1)*32))
 
 	def init_pellet(self):
@@ -580,7 +602,7 @@ class App:
 		# Check if ghost has catch player or not
 		for g in self.ghost:
 			if self.game.isCollision_ghost(g.x, g.y, \
-				self.Con.player[self.sock].show_x(), self.Con.player[self.sock].show_y(), 32):
+				self.Con.player[self.sock].x, self.Con.player[self.sock].y, 30):
 				if g.power_mode:
 					# in power_mode ghost was eaten.
 					self.effect_eatghost.play()
@@ -601,7 +623,7 @@ class App:
 		# Check if player has catch dot or not
 		for j in range(0, len(self.dot)):
 			if self.game.isCollision_dot(self.dot[j].x, self.dot[j].y, \
-				self.Con.player[self.sock].show_x(), self.Con.player[self.sock].show_y(), 32):
+				self.Con.player[self.sock].show_x(), self.Con.player[self.sock].show_y(), 30):
 				del self.dot[j]	
 				self.effect_chomp.play()
 				self.point = self.point + 10
@@ -609,7 +631,7 @@ class App:
 		# Check if player has catch pellet or not
 		for j in range(0, len(self.pellet)):
 			if self.game.isCollision_dot(self.pellet[j].x, self.pellet[j].y, \
-				self.Con.player[self.sock].show_x(), self.Con.player[self.sock].show_y(), 32):
+				self.Con.player[self.sock].show_x(), self.Con.player[self.sock].show_y(), 30):
 				# if yes, power_mode on
 				del self.pellet[j]
 				self.effect_eatpill.play()
@@ -654,7 +676,7 @@ class App:
 
 	def on_render(self):
 		"""draw game screen in this function"""
-		self._display_surf.fill((0,0,0))
+		self._display_surf.fill((255, 255, 255))
 		for i in range(0,len(self.wall_v)):
 			self.wall_v[i].draw_v(self._display_surf)
 		for i in range(0,len(self.wall_h)):

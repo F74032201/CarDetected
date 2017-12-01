@@ -47,7 +47,7 @@ class Player(object):
 		self.color = [0,0,0]
 		self.connected = True       # Control the loop to break.
 		self.tmp_frame = None
-		self.wall_high = 14.5
+		self.wall_high = 15
 		self.car_high = 10
 		
 		self.pos_thread = PositionThread(self)      # Create thread to refresh position.
@@ -175,16 +175,16 @@ class Player(object):
 
 		self._image_0 = pygame.image.load("img/pacman.png").convert()
 		self._image_0 = pygame.transform.scale(self._image_0, (self.picwidth, self.picwidth))
-		eraseBG(self._image_0)
+		# eraseBG(self._image_0)
 		self._image_1 = pygame.image.load("img/pacman_1.png").convert()
 		self._image_1 = pygame.transform.scale(self._image_1, (self.picwidth, self.picwidth))
-		eraseBG(self._image_1)
+		# eraseBG(self._image_1)
 		self._image_2 = pygame.image.load("img/pacman_2.png").convert()
 		self._image_2 = pygame.transform.scale(self._image_2, (self.picwidth, self.picwidth))
-		eraseBG(self._image_2)
+		# eraseBG(self._image_2)
 		self._image_3 = pygame.image.load("img/pacman_3.png").convert()
 		self._image_3 = pygame.transform.scale(self._image_3, (self.picwidth, self.picwidth))
-		eraseBG(self._image_3)
+		# eraseBG(self._image_3)
 
 		self.image = self._image_0
 
@@ -255,5 +255,5 @@ class Player(object):
 		surface.blit(self.image, (self.show_x(), self.show_y()))
 
 	def set_car_high(self):
-		self.car_high = int(self.high_str.get())
+		self.car_high = float(self.high_str.get())
 		print("%s's car high set to %d" %(self.name, self.car_high))
