@@ -20,6 +20,15 @@ class PositionThread(Thread):
 	def run(self):
 		self.player.RefreshPos()
 
+class SetcolorThread(Thread):
+	"""Thread for setting color."""
+	def __init__(self, player):
+		Thread.__init__(self)
+		self.player = player
+
+	def run(self):
+		self.player.RefreshColor()
+
 class Player(object):
 	"""Collect information of player."""
 	last_x = 256+32
@@ -56,7 +65,7 @@ class Player(object):
 
 		self.check_var = IntVar()
 		self.C1 = Checkbutton(self.frame, variable=self.check_var, onvalue=1, offvalue=0).pack(side=LEFT)
-		self.set_color_btn = Button(self.frame, text="Set color", command=self.refresh_color).pack(side=LEFT)
+		self.set_color_btn = Button(self.frame, text="Set color", command=self.create_setcolor_thread).pack(side=LEFT)
 
 		self.RGB = Label(self.frame, text='color')
 		self.RGB.pack(side=RIGHT)
@@ -71,6 +80,10 @@ class Player(object):
 
 	def delete(self):
 		self.frame.destroy()
+
+	def create_setcolor_thread(self):
+		setcolor_thread = SetcolorThread(self)
+		setcolor_thread.start()
 
 	def refresh_color(self):
 		cv2.namedWindow('Set Color (s to quit)')

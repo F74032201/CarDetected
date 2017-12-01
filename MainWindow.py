@@ -37,25 +37,10 @@ class thread_transform(Thread):
 		self._stop_event = threading.Event()
 
 	def run(self):
-		show_flag = True
 		while True:
 			self.UP.refresh_result()
 			self.DP.refresh_result()
-			# Show the window of the transforming maze
-			if show_flag:
-				cv2.imshow('UP (w to quit)', self.UP.result)
-				cv2.imshow('DP (w to quit)', self.DP.result)
-
-			if cv2.waitKey(1) & 0xFF == ord('w'):
-				show_flag = not show_flag
-				cv2.waitKey(1)
-				cv2.destroyWindow("UP (w to quit)")
-				cv2.destroyWindow("DP (w to quit)")
-				# Use waitkey to prevent from crashing
-				cv2.waitKey(1)
-				cv2.waitKey(1)
-				cv2.waitKey(1)
-				cv2.waitKey(1)
+			
 
 class thread_frame(Thread):
 	"""Thread for updating the stream from camera."""
@@ -92,6 +77,44 @@ class game_thread(Thread):
 		self.App.on_execute()
 		# Delete the object when quit the game.
 		del self.App
+
+class MazeColorThread(Thread):
+	"""Thread for picking maze color."""
+	def __init__(self, UP,DP):
+		Thread.__init__(self)
+		self.UP = UP
+		self.DP = DP
+		
+	def run(self):
+		self.UP.refresh_color()
+		self.DP.refresh_color()
+
+class RefreahPointsThread(MazeColorThread):
+	"""Thread for refreshing 4 points and show the results."""
+	def run(self):
+		self.UP.refresh_points()
+		self.DP.refresh_points()
+		cv2.namedWindow('UP (w to quit)')
+		cv2.namedWindow('DP (w to quit)')
+		while True:
+			# Show the window of the transforming maze
+			cv2.imshow('UP (w to quit)', self.UP.result)
+			cv2.imshow('DP (w to quit)', self.DP.result)
+
+			if cv2.waitKey(1) & 0xFF == ord('w'):
+				cv2.waitKey(1)
+				cv2.destroyWindow("UP (w to quit)")
+				cv2.waitKey(1)
+				cv2.waitKey(1)
+				cv2.waitKey(1)
+				cv2.waitKey(1)
+				cv2.destroyWindow("DP (w to quit)")
+				# Use waitkey to prevent from crashing
+				cv2.waitKey(1)
+				cv2.waitKey(1)
+				cv2.waitKey(1)
+				cv2.waitKey(1)
+				break
 
 def Exit(r):
 	"""Exit the program."""
@@ -140,15 +163,24 @@ def transmit(Con, mes, chatbox):
 					%(Con.player[idx].name, tmp_message))
 				chatbox.see(END)
 
-def refresh_4(UP, DP):
-	UP.refresh_points()
-	DP.refresh_points()
+def create_refresh4_thread(UP, DP):
+	refresh4_thread = RefreahPointsThread(UP, DP)
+	refresh4_thread.start()
 	print("refresh points")
 
-def maze_color(UP, DP):
-	UP.refresh_color()
-	DP.refresh_color()
-	print("refresh color")
+# def refresh_4(UP, DP):
+# 	UP.refresh_points()
+# 	DP.refresh_points()
+# 	print("refresh points")
+def create_mazecolor_thread(UP, DP):
+	mazecolor_thread = MazeColorThread(UP,DP)
+	mazecolor_thread.start()
+	print("refresh color")	
+
+# def maze_color(UP, DP):
+# 	UP.refresh_color()
+# 	DP.refresh_color()
+# 	print("refresh color")
 
 def maze_update(UP, DP, maze_update_btn):
 	transform_thread = thread_transform(UP, DP)
@@ -171,8 +203,7 @@ if __name__ == "__main__":
 	win = Tk()
 
 	#create camera obj
-	cap = cv2.VideoCapture(0)
-
+	cap = cv2.VideoCapture(1)
 	cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
 	cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
@@ -195,7 +226,7 @@ if __name__ == "__main__":
 	ExitBtn = Button(main_frame, text="結束", command=lambda: Exit(win), font=helv36)
 	ExitBtn.pack(side=RIGHT)
 	maze_color_btn = Button(main_frame, text="設定四角顏色",\
-		command=lambda: maze_color(UP, DP), font=helv36)
+		command=lambda: create_mazecolor_thread(UP,DP), font=helv36)
 	maze_color_btn.pack(side=LEFT)
 	Mbtn_text = StringVar()
 	Mbtn_text.set("開始校正")
@@ -229,7 +260,7 @@ if __name__ == "__main__":
 
 	mes = StringVar()
 	refresh_4point = Button(main_frame_player_box, text="攝影機晃到",\
-		command=lambda: refresh_4(UP, DP)).pack(side=RIGHT)
+		command=lambda: create_refresh4_thread(UP,DP)).pack(side=RIGHT)
 	delete_button = Button(main_frame_player_box, text="踢除",\
 		command=lambda: kick(Con)).pack(side=RIGHT)
 	message_button = Button(main_frame_player_box, text="傳送",\
