@@ -43,19 +43,19 @@ class myThreadTransform(Thread):
 			self.UP.RefreshResult()
 			self.DP.RefreshResult()
 
-			if show_flag:
-				cv2.imshow('UP (w to quit)',self.UP.Result)
-				cv2.imshow('DP (w to quit)',self.DP.Result)
+			# if show_flag:
+			# 	cv2.imshow('UP (w to quit)',self.UP.Result)
+			# 	cv2.imshow('DP (w to quit)',self.DP.Result)
 
-			if cv2.waitKey(1) & 0xFF == ord('w'):				
-				show_flag = not show_flag
-				cv2.waitKey(1)
-				cv2.destroyWindow("UP (w to quit)")
-				cv2.destroyWindow("DP (w to quit)")
-				cv2.waitKey(1)
-				cv2.waitKey(1)
-				cv2.waitKey(1)
-				cv2.waitKey(1)
+			# if cv2.waitKey(1) & 0xFF == ord('w'):				
+			# 	show_flag = not show_flag
+			# 	# cv2.waitKey(1)
+			# 	cv2.destroyWindow("UP (w to quit)")
+			# 	cv2.destroyWindow("DP (w to quit)")
+			# 	# cv2.waitKey(1)
+			# 	# cv2.waitKey(1)
+			# 	# cv2.waitKey(1)
+			# 	# cv2.waitKey(1)
 
 
 	def stop(self):
@@ -94,7 +94,42 @@ class GameThread(Thread):
 				ChangeColor(self.Con.player[idx].image,self.Con.player[idx].Color)
 		self.App.on_execute()
 
+class MazeColorThread(Thread):
+	"""Thread for picking maze color."""
+	def __init__(self, UP,DP):
+		Thread.__init__(self)
+		self.UP = UP
+		self.DP = DP
+		
+	def run(self):
+		self.UP.RefreshColor()
+		self.DP.RefreshColor()
 
+class RefreahPointsThread(MazeColorThread):
+	"""Thread for refreshing 4 points and show the results."""
+	def run(self):
+		self.UP.RefreshPoints()
+		self.DP.RefreshPoints()
+		cv2.namedWindow('UP (w to quit)')
+		cv2.namedWindow('DP (w to quit)')
+		while 1:
+			cv2.imshow('UP (w to quit)',self.UP.Result)
+			cv2.imshow('DP (w to quit)',self.DP.Result)
+
+			if cv2.waitKey(1) & 0xFF == ord('w'):
+				cv2.destroyWindow("UP (w to quit)")	
+				cv2.waitKey(1)
+				cv2.waitKey(1)
+				cv2.waitKey(1)
+				cv2.waitKey(1)
+				cv2.destroyWindow("DP (w to quit)")
+				
+				cv2.waitKey(1)
+				cv2.waitKey(1)
+				cv2.waitKey(1)
+				cv2.waitKey(1)
+				break
+		
 def Exit(r):
 	os._exit(1)
 	r.destroy()
@@ -139,19 +174,21 @@ def transmit(Con,mes,chatbox):
 				chatbox.insert(INSERT, 'Master send to %s : %s\n' %(Con.player[idx].name,tmp_message))
 				chatbox.see(END)
 	
-def refresh_4(UP,DP):
-	UP.RefreshPoints()
-	DP.RefreshPoints()
+def create_refresh4_thread(UP, DP):
+	refresh4_thread = RefreahPointsThread(UP, DP)
+	refresh4_thread.start()
 	print("refresh points")
+# def refresh_4(UP,DP):
+# 	UP.RefreshPoints()
+# 	DP.RefreshPoints()
+# 	print("refresh points")
 
-def MazeColor(UP,DP):
-	UP.RefreshColor()
-	DP.RefreshColor()
-
+def create_mazecolor_thread(UP, DP):
+	mazecolor_thread = MazeColorThread(UP,DP)
+	mazecolor_thread.start()
 	print("refresh color")	
-	# DP.RefreshColor()
 
-def MazeUpdate(UP,DP,MazeUpdateBtn):
+def MazeUpdate(UP, DP, MazeUpdateBtn):
 	TransformThread = myThreadTransform(UP,DP)
 	TransformThread.start()
 	MazeUpdateBtn.config(state = "disable")
@@ -218,7 +255,7 @@ if __name__ == "__main__":
 	StartServerBtn.pack(side = LEFT)
 	ExitBtn = Button(main_frame,text = "結束", command = lambda: Exit(win),font = helv36)
 	ExitBtn.pack(side = RIGHT)
-	MazeColorBtn = Button(main_frame,text = "設定四角顏色", command = lambda: MazeColor(UP,DP),font = helv36)
+	MazeColorBtn = Button(main_frame,text = "設定四角顏色", command = lambda: create_mazecolor_thread(UP,DP),font = helv36)
 	MazeColorBtn.pack(side = LEFT)
 	Mbtn_text = StringVar()
 	Mbtn_text.set("開始校正")
@@ -249,15 +286,15 @@ if __name__ == "__main__":
 	# main_frame_player_teamB = LabelFrame(main_frame_player_team,text = "Team B",foreground="red")
 	# main_frame_player_teamB.pack(side = RIGHT)
 	
-	border_H = 9
-	border_W = 9
+	border_H = 7
+	border_W = 7
 	block_size = 64
 	#create connection obj
 	Con = ServerConnection(main_frame_player_team, chatbox , UP, DP,border_H,border_W,block_size)
 	Con.OpenServerSocket()
 
 	mes = StringVar()
-	refresh_4point = Button(main_frame_player_box , text = "攝影機晃到" , command = lambda:refresh_4(UP,DP)).pack(side = RIGHT)
+	refresh_4point = Button(main_frame_player_box , text = "攝影機晃到" , command = lambda:create_refresh4_thread(UP,DP)).pack(side = RIGHT)
 	delete_button = Button(main_frame_player_box, text = "踢除" , command = lambda: kick(Con)).pack(side = RIGHT)
 	message_button = Button(main_frame_player_box, text="傳送" , command = lambda: transmit(Con,mes,chatbox)).pack(side = RIGHT)	
 	message_textbox = Entry(main_frame_player_box, width=16, textvariable = mes).pack(side = RIGHT)

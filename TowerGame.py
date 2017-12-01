@@ -3,6 +3,8 @@ import pygame
 import time
 from random import randint
 from tkinter import messagebox
+from tkinter import *
+from tkinter.scrolledtext import *
 import os
 from mapp import *
 
@@ -51,6 +53,7 @@ class Tower:
 		self.image.set_colorkey( (0,0,0), RLEACCEL )
 		self.done = False
 		self.id = 0
+		self.Color = None
 	def draw(self, surface):
 		surface.blit(self.image,(self.x , self.y))
 
@@ -130,6 +133,7 @@ class App:
 				#print(self.Con.player[i].carDst[0], self.Con.player[i].carDst[1])
 				self.tower[i] = Tower(self.Con.player[i].carDst[0], self.Con.player[i].carDst[1],self.block_size)
 				self.tower[i].id = self.Con.player[i].id
+				self.tower[i].Color = self.Con.player[i].Color
 				ChangeColor(self.tower[i].image,self.Con.player[i].Color)
 
 	def on_event(self, event):
@@ -162,6 +166,12 @@ class App:
 								self.Con.player[i].game_time_min,\
 								self.Con.player[i].game_time_sec10,\
 								self.Con.player[i].game_time_sec))
+							# Print result onto textbox.
+							self.Con.chatbox.insert(INSERT, "%s has Done at %d分 %d%d秒\n" %(self.Con.player[i].name,\
+								self.Con.player[i].game_time_min,\
+								self.Con.player[i].game_time_sec10,\
+								self.Con.player[i].game_time_sec))
+							self.Con.chatbox.see(END) 
 
 							#check whether all the cars have done
 							self._all_done = True
@@ -188,11 +198,15 @@ class App:
 			self.wall_v[i].draw_v(self._display_surf)
 		for i in range(0,len(self.wall_h)):
 			self.wall_h[i].draw_h(self._display_surf)
-		for i in list(self.tower):
-			self.tower[i].draw(self._display_surf)
+		# for i in list(self.tower):
+		# 	self.tower[i].draw(self._display_surf)
 		for i in list(self.Con.player):
 			if type(self.Con.player[i]) != type('a'):
+				if self.Con.player[i].Color != self.tower[i].Color:
+					self.tower[i].Color = self.Con.player[i].Color
+					ChangeColor(self.tower[i].image,self.Con.player[i].Color)
 				self.Con.player[i].draw(self._display_surf)
+				self.tower[i].draw(self._display_surf)
 		self._display_surf.blit(self._text_surf,(0,self.GameHeigh))
 		pygame.display.flip()
 		
@@ -210,15 +224,21 @@ class App:
 						self.Con.player[i].game_time_sec10,\
 						self.Con.player[i].game_time_sec))
 					#initialize everyone 
-					del self.tower[i]
-					self.Con.player[i].done = False
+					
 			print_mes = print_mes + ("共花時間: %d分 %d%d秒" \
 				%(self.game_time_min,self.game_time_sec10,self.game_time_sec))
 			messagebox.showinfo("All done!",print_mes)
 
+		self.tower.clear()
+		for i in list(self.Con.player):
+			if type(self.Con.player[i]) != type('a'):
+				self.Con.player[i].done = False
+				# del self.tower[i]
+		
+
 	def on_execute(self):
-		if self.on_init() == False:
-			self._running = False
+		# if self.on_init() == False:
+		# self._running = False
 
 		while(self._running):
 			pygame.event.pump()

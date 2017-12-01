@@ -52,14 +52,14 @@ class TransformMaze(object):
 			if cv2.waitKey(1) & 0xFF == ord('q'):
 				
 				show_flag = False
-
+				cv2.destroyWindow("Set Color (q to quit)")
+				cv2.waitKey(1)
+				cv2.waitKey(1)
+				cv2.waitKey(1)
+				cv2.waitKey(1)
 				break
-		cv2.waitKey(1)
-		cv2.destroyWindow("Set Color (q to quit)")
-		cv2.waitKey(1)
-		cv2.waitKey(1)
-		cv2.waitKey(1)
-		cv2.waitKey(1)
+		# cv2.waitKey(1)
+		
 
 
 	def on_mouse(self,event,x,y,flags,param):

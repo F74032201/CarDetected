@@ -20,6 +20,17 @@ class PositionThread(Thread):
 			ChangeColor(self.player.image, self.player.Color)
 		self.player.RefreshPos()
 
+class SetcolorThread(Thread):
+	"""Thread for setting color."""
+	def __init__(self, player):
+		Thread.__init__(self)
+		self.player = player
+
+	def run(self):
+		self.player.RefreshColor()
+
+	
+
 class Player(object):
 	def __init__(self, root,name,UP,DP,border_H,border_W,block_size):
 		super(Player, self).__init__()
@@ -63,7 +74,7 @@ class Player(object):
 
 		self.CheckVar = IntVar()
 		self.C1 = Checkbutton(self.frame, variable = self.CheckVar,onvalue = 1, offvalue = 0).pack(side = LEFT)
-		self.SetColorBtn=Button(self.frame,text="Set color",command=self.RefreshColor).pack(side = LEFT)
+		self.SetColorBtn=Button(self.frame,text="Set color",command=self.create_setcolor_thread).pack(side = LEFT)
 
 		self.RGB = Label(self.frame,text = 'color')
 		self.RGB.pack(side = RIGHT)
@@ -82,17 +93,22 @@ class Player(object):
 	def delete(self):
 		self.frame.destroy()
 
+	def create_setcolor_thread(self):
+		setcolor_thread = SetcolorThread(self)
+		setcolor_thread.start()
+
 	def RefreshColor(self):
 		cv2.namedWindow('Set Color (s to quit)')
 		cv2.setMouseCallback('Set Color (s to quit)',self.on_mouse)
-		self.tmp_frame = self.DP.framethread.frame
+		self.tmp_frame = self.DP.Result
 
 		while True:
 			# if ret == False:
 			# 	break
 
 			
-			self.FindPos(self.tmp_frame,(0,0))
+			car = self.FindPos(self.tmp_frame,(0,0))
+			cv2.circle( self.tmp_frame, car, 5, (0, 0, 150), -1)
 			# print("1")
 			cv2.imshow('Set Color (s to quit)',self.tmp_frame)
 			cv2.waitKey(1)
@@ -110,6 +126,8 @@ class Player(object):
 				break
 		#Set label color
 		self.RGB.config(bg = '#'+str(rgb(self.Color[2],self.Color[1],self.Color[0]).hex))
+		if self.image != None:
+			ChangeColor(self.image, self.Color)
 
 		
 	def on_mouse(self,event,x,y,flags,param):
@@ -175,7 +193,7 @@ class Player(object):
 		moments = cv2.moments(cnts[maxNum])
 		car = int(moments['m10']/moments['m00']), int(moments['m01']/moments['m00'])
 
-		cv2.circle( src, car, 5, (0, 0, 150), -1)
+		
 		return car
 
 	def RefreshPos(self):
