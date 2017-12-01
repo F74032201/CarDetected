@@ -146,7 +146,7 @@ class App:
 		#does car catch tower	
 		# for i in range(0,len(self.Con.player)):
 		for i in list(self.Con.player):
-			if type(self.Con.player[i]) != type('a'):
+			if type(self.Con.player[i]) != type('a') and (i in self.tower):
 				if self.Con.player[i].image == None:
 					self.Con.player[i].game_init()
 					self.Con.player[i].direction = -1
@@ -176,7 +176,7 @@ class App:
 							#check whether all the cars have done
 							self._all_done = True
 							for idx in list(self.Con.player):
-								if type(self.Con.player[idx]) != type('a'):
+								if type(self.Con.player[idx]) != type('a') and (idx in self.tower):
 									if not self.Con.player[idx].done:
 										self._all_done = False
 							if self._all_done:
@@ -201,7 +201,7 @@ class App:
 		# for i in list(self.tower):
 		# 	self.tower[i].draw(self._display_surf)
 		for i in list(self.Con.player):
-			if type(self.Con.player[i]) != type('a'):
+			if type(self.Con.player[i]) != type('a') and (i in self.tower):
 				if self.Con.player[i].Color != self.tower[i].Color:
 					self.tower[i].Color = self.Con.player[i].Color
 					ChangeColor(self.tower[i].image,self.Con.player[i].Color)
@@ -217,7 +217,7 @@ class App:
 			#print all player finished time to the screen
 			print_mes = ""
 			for i in list(self.Con.player):
-				if type(self.Con.player[i]) != type('a'):
+				if type(self.Con.player[i]) != type('a') and (i in self.tower):
 					print_mes = print_mes + ("%s 行走時間： %d分 %d%d秒\n" \
 						%(self.Con.player[i].name,\
 						self.Con.player[i].game_time_min,\
@@ -231,7 +231,7 @@ class App:
 
 		self.tower.clear()
 		for i in list(self.Con.player):
-			if type(self.Con.player[i]) != type('a'):
+			if type(self.Con.player[i]) != type('a') and (i in self.tower):
 				self.Con.player[i].done = False
 				# del self.tower[i]
 		
