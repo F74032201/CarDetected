@@ -42,6 +42,7 @@ class Player(object):
 		self.name = name
 		self.id = 0
 		self.done = False
+		self.dst_sent = False
 
 		self.pos = (-1,-1)
 		self.posUsr = (-1,-1)

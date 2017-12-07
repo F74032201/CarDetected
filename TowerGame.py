@@ -153,6 +153,7 @@ class App:
 				self.Con.player[i].update()	
 				for j in list(self.tower):
 					if self.game.isCollision(self.tower[j].x,self.tower[j].y,self.Con.player[i].x,self.Con.player[i].y,30):
+						# Arrived at the correct destination.
 						if self.tower[j].id == self.Con.player[i].id and (not self.tower[j].done):
 							self.tower[j].done = True
 							self.Con.player[i].done = True
@@ -181,6 +182,12 @@ class App:
 										self._all_done = False
 							if self._all_done:
 								self._running = False
+
+						# Arrived at the wrong destination. 
+						else:
+							if not self.Con.player[i].dst_sent:
+								self.Con.ser_send_data(i,"False:"+self.Con.player[i].name)
+								self.Con.player[i].dst_sent = True
 
 		self.game_time_sec = int((pygame.time.get_ticks() - self.start_ticks)/1000) # milliseconds to seconds
 		self.game_time_sec10 = int(self.game_time_sec/10)

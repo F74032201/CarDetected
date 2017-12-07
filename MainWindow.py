@@ -8,6 +8,7 @@ from Connection import *
 from TowerGame import *
 import numpy as np
 import cv2
+import random
 
 start_count = 0
 
@@ -219,14 +220,21 @@ def DisplayCar():
 
 def GameRestart(Con,chatbox):
 	gamethread = GameThread(Con)
-	gamethread.start()
-
-	#send start to everyone
+	gamethread.start() 
+	dst_tmp = []
+	# send start to everyone
 	for idx in list(Con.player):
 		if type(Con.player[idx]) != type('a'):
+			dst_tmp.append(Con.player[idx].carDst)
 			Con.ser_send_data(idx,"Start")
 			chatbox.insert(INSERT, 'Master send to %s : %s\n' %(Con.player[idx].name,"Start"))
 			chatbox.see(END)
+
+	# sort dst points and save into str
+	random.shuffle(dst_tmp)
+	for idx in list(dst_tmp):
+		Con.rand_dst += str(dst_tmp[idx])
+	print(Con.rand_dst)
 
 if __name__ == "__main__":
 	win = Tk()
