@@ -232,7 +232,7 @@ def GameRestart(Con,chatbox):
 
 	# sort dst points and save into str
 	random.shuffle(dst_tmp)
-	for idx in list(dst_tmp):
+	for idx in range(0,len(dst_tmp)-1):
 		Con.rand_dst += str(dst_tmp[idx])
 	print(Con.rand_dst)
 

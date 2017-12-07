@@ -17,6 +17,7 @@ class ServerConnection:
 		self.player = {}
 		self.player_num = 0
 		self.chatbox = chatbox
+		self.rand_dst = ''
 
 	def ser_send_data(self,sock,message):
 		#Sending message from server
@@ -121,6 +122,9 @@ class ServerConnection:
 			            	tmpY = int(self.block_size/2) + self.player[sock].carDst[1]*self.block_size
 			            	self.ser_send_data(sock,"POS:"+str((int(self.player[sock].x + 16),int(self.player[sock].y + 16)))+str((tmpX,tmpY)))
 
+			            elif 'Treasure' in data:
+			            	self.ser_send_data(sock,"Treasure:" + self.rand_dst)
+			            	
 			            #sent to specific client   
 			            elif '|' in data:
 			                self.send_data(sock,data+'\r')
