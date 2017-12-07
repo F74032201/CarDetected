@@ -14,7 +14,7 @@ def ChangeColor(image,color):
 	o_r, o_g, o_b, _ = image.get_at((16, 14))
 	for x in range(w):
 		for y in range(h):
-			if image.get_at((x, y))[0] == o_r and image.get_at((x, y))[1] == o_g and image.get_at((x, y))[2] == o_b:
+			if image.get_at((x, y))[0] != 0 and image.get_at((x, y))[1] != 0 and image.get_at((x, y))[2] != 0:
 				a = image.get_at((x, y))[3]
 				image.set_at((x, y), pygame.Color(r, g, b, a))
 			else:

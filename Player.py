@@ -103,20 +103,15 @@ class Player(object):
 		self.tmp_frame = self.DP.Result
 
 		while True:
-			# if ret == False:
-			# 	break
-
 			
 			car = self.FindPos(self.tmp_frame,(0,0))
 			cv2.circle( self.tmp_frame, car, 5, (0, 0, 150), -1)
-			# print("1")
 			cv2.imshow('Set Color (s to quit)',self.tmp_frame)
 			cv2.waitKey(1)
 			cv2.waitKey(1)
 			cv2.waitKey(1)
 			cv2.waitKey(1)
 			self.tmp_frame = self.DP.Result
-			# print("2")
 			if cv2.waitKey(1) & 0xFF == ord('s'):
 				cv2.destroyWindow("Set Color (s to quit)")
 				cv2.waitKey(1)
