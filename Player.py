@@ -60,6 +60,7 @@ class Player(object):
 		self.game_time_min = 0
 		self.game_time_sec = 0
 		self.game_time_sec10 = 0
+		self.last_sent_time = 0
 
 		#control the thread to be over
 		self.Connected = True

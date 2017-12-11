@@ -48,7 +48,7 @@ class Tower:
 		self.block_size = block_size
 		self.x = x * self.block_size + self.block_size/4
 		self.y = y * self.block_size + self.block_size/4
-		self.image = pygame.image.load('img/tower.png').convert()
+		self.image = pygame.image.load('img/treasure_case.png').convert()
 		self.image = pygame.transform.scale(self.image,(self.picwidth,self.picwidth))
 		self.image.set_colorkey( (0,0,0), RLEACCEL )
 		self.done = False
@@ -163,10 +163,7 @@ class App:
 							self.Con.player[i].game_time_min = self.game_time_min
 							self.Con.player[i].game_time_sec10 = self.game_time_sec10
 							self.Con.player[i].game_time_sec = self.game_time_sec
-							print("%s has Done at %d分 %d%d秒" %(self.Con.player[i].name,\
-								self.Con.player[i].game_time_min,\
-								self.Con.player[i].game_time_sec10,\
-								self.Con.player[i].game_time_sec))
+
 							# Print result onto textbox.
 							self.Con.chatbox.insert(INSERT, "%s has Done at %d分 %d%d秒\n" %(self.Con.player[i].name,\
 								self.Con.player[i].game_time_min,\
@@ -185,9 +182,14 @@ class App:
 
 						# Arrived at the wrong destination. 
 						else:
+							# If failed message has been sent at last 3s, then send again.
+							if int((pygame.time.get_ticks() - self.start_ticks)/1000) - \
+								self.Con.player[i].last_sent_time > 3:
+								self.Con.player[i].dst_sent = False
 							if not self.Con.player[i].dst_sent:
-								self.Con.ser_send_data(i,"False:"+self.Con.player[i].name)
+								self.Con.ser_send_data(i,"False:" + self.Con.player[j].name)
 								self.Con.player[i].dst_sent = True
+								self.Con.player[i].last_sent_time = int((pygame.time.get_ticks() - self.start_ticks)/1000)
 
 		self.game_time_sec = int((pygame.time.get_ticks() - self.start_ticks)/1000) # milliseconds to seconds
 		self.game_time_sec10 = int(self.game_time_sec/10)
@@ -213,7 +215,8 @@ class App:
 					self.tower[i].Color = self.Con.player[i].Color
 					ChangeColor(self.tower[i].image,self.Con.player[i].Color)
 				self.Con.player[i].draw(self._display_surf)
-				self.tower[i].draw(self._display_surf)
+				if not self.tower[i].done:
+					self.tower[i].draw(self._display_surf)
 		self._display_surf.blit(self._text_surf,(0,self.GameHeigh))
 		pygame.display.flip()
 		
@@ -241,6 +244,7 @@ class App:
 			if type(self.Con.player[i]) != type('a') and (i in self.tower):
 				self.Con.player[i].done = False
 				# del self.tower[i]
+		self.Con.rand_dst = ''
 		
 
 	def on_execute(self):
@@ -261,8 +265,3 @@ class App:
 			
 			time.sleep(100.0 / 1000.0)
 		self.on_cleanup()
-
-
-# if __name__ == "__main__" :
-# 	theApp = App()
-# 	theApp.on_execute()

@@ -44,21 +44,6 @@ class myThreadTransform(Thread):
 			self.UP.RefreshResult()
 			self.DP.RefreshResult()
 
-			# if show_flag:
-			# 	cv2.imshow('UP (w to quit)',self.UP.Result)
-			# 	cv2.imshow('DP (w to quit)',self.DP.Result)
-
-			# if cv2.waitKey(1) & 0xFF == ord('w'):				
-			# 	show_flag = not show_flag
-			# 	# cv2.waitKey(1)
-			# 	cv2.destroyWindow("UP (w to quit)")
-			# 	cv2.destroyWindow("DP (w to quit)")
-			# 	# cv2.waitKey(1)
-			# 	# cv2.waitKey(1)
-			# 	# cv2.waitKey(1)
-			# 	# cv2.waitKey(1)
-
-
 	def stop(self):
 		print("Stop connection loop")
 		self._stop_event.set()
@@ -158,11 +143,7 @@ def convert():
 def kick(Con):
 	for idx in list(Con.player):
 		if type(Con.player[idx]) != type('a'):
-			if Con.player[idx].CheckVar.get():
-				# Con.player[idx].Connected = False
-				# Con.player[idx].delete()
-				# del Con.player[idx]
-		
+			if Con.player[idx].CheckVar.get():		
 				Con.DELETE(idx)
 				
 def transmit(Con,mes,chatbox):
@@ -179,10 +160,6 @@ def create_refresh4_thread(UP, DP):
 	refresh4_thread = RefreahPointsThread(UP, DP)
 	refresh4_thread.start()
 	print("refresh points")
-# def refresh_4(UP,DP):
-# 	UP.RefreshPoints()
-# 	DP.RefreshPoints()
-# 	print("refresh points")
 
 def create_mazecolor_thread(UP, DP):
 	mazecolor_thread = MazeColorThread(UP,DP)
@@ -227,12 +204,10 @@ def GameRestart(Con,chatbox):
 		if type(Con.player[idx]) != type('a'):
 			dst_tmp.append(Con.player[idx].carDst)
 			Con.ser_send_data(idx,"Start")
-			chatbox.insert(INSERT, 'Master send to %s : %s\n' %(Con.player[idx].name,"Start"))
-			chatbox.see(END)
 
 	# sort dst points and save into str
 	random.shuffle(dst_tmp)
-	for idx in range(0,len(dst_tmp)-1):
+	for idx in range(0,len(dst_tmp)):
 		Con.rand_dst += str(dst_tmp[idx])
 	print(Con.rand_dst)
 
@@ -240,7 +215,7 @@ if __name__ == "__main__":
 	win = Tk()
 
 	#create camera obj
-	cap = cv2.VideoCapture(0)
+	cap = cv2.VideoCapture(1)
 
 	cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280);
 	cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720);
@@ -287,12 +262,6 @@ if __name__ == "__main__":
 
 	main_frame_player_team = LabelFrame(main_frame_player)
 	main_frame_player_team.pack(fill='x',padx=10,pady=8)
-
-	# main_frame_player_teamA = LabelFrame(main_frame_player_team,text = "Team A",foreground="red")
-	# main_frame_player_teamA.pack(side = LEFT)
-
-	# main_frame_player_teamB = LabelFrame(main_frame_player_team,text = "Team B",foreground="red")
-	# main_frame_player_teamB.pack(side = RIGHT)
 	
 	border_H = 7
 	border_W = 7

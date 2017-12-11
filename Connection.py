@@ -25,9 +25,10 @@ class ServerConnection:
 		# print(message)
 		try :
 			sock.send(tmp_message.encode(encoding='utf-8'))
-			#Print to the window
-			# self.chatbox.insert(INSERT, 'Master send to %s : %s\n' %(self.player[sock].name,message))
-			# self.chatbox.see(END)
+			if 'POS:' not in message:	
+				# Print to the window
+				self.chatbox.insert(INSERT, 'Master send to %s : %s\n' %(self.player[sock].name,message))
+				self.chatbox.see(END)
 		except :
 			# broken socket connection may be, chat client pressed ctrl+c for example
 			self.DELETE(sock)
@@ -60,7 +61,7 @@ class ServerConnection:
 					socket.send(tmp_message.encode(encoding='utf-8'))
 					'''	
 					#Print to the window
-					self.chatbox.insert(INSERT, '%s Broadcast : %s\n' %(self.player[sock].name,message[message.index('|')+1:]))
+					self.chatbox.insert(INSERT, '%s Broadca如果返回值= 0，則表明str1 等於str2st : %s\n' %(self.player[sock].name,message[message.index('|')+1:]))
 					self.chatbox.see(END)                
 					'''
 				except :
@@ -101,11 +102,12 @@ class ServerConnection:
 			            #In Windows, sometimes when a TCP program closes abruptly,
 			            # a "Connection reset by peer" exception will be thrown
 			            data = sock.recv(self.RECV_BUFFER).decode('utf-8')
+			            print(data)
 			            #regist id
 			            if 'Register' in data:
 			                sock.send("Master|Client hello!\r".encode(encoding='utf-8'))
 			                #create player obj
-			                self.player[sock] =  Player(self.root,data[10:],self.UP,self.DP,self.border_H,self.border_W,self.block_size)
+			                self.player[sock] =  Player(self.root,data[9:],self.UP,self.DP,self.border_H,self.border_W,self.block_size)
 			                self.player[sock].id = self.player_num
 			                self.player_num = self.player_num + 1
 			                # self.player[sock].team = "A"
@@ -118,9 +120,7 @@ class ServerConnection:
 			                self.broadcast_data(sock,data+'\r') 
 
 			            elif 'Position' in data:
-			            	tmpX = int(self.block_size/2) + self.player[sock].carDst[0]*self.block_size
-			            	tmpY = int(self.block_size/2) + self.player[sock].carDst[1]*self.block_size
-			            	self.ser_send_data(sock,"POS:"+str((int(self.player[sock].x + 16),int(self.player[sock].y + 16)))+str((tmpX,tmpY)))
+			            	self.ser_send_data(sock,"POS:"+str((int(self.player[sock].x + 16),int(self.player[sock].y + 16))))
 
 			            elif 'Treasure' in data:
 			            	self.ser_send_data(sock,"Treasure:" + self.rand_dst)

@@ -3,7 +3,6 @@ import cv2
 from operator import itemgetter
 import imutils
 
-
 class TransformMaze(object):
 	def __init__(self,framethread):
 		self.framethread = framethread
@@ -15,7 +14,6 @@ class TransformMaze(object):
 		self.TransformContinue = True
 		self.width = 512
 		self.height = 512
-
 
 	#for thread
 	def RefreshResult(self):
@@ -57,17 +55,12 @@ class TransformMaze(object):
 				cv2.waitKey(1)
 				cv2.waitKey(1)
 				cv2.waitKey(1)
-				break
-		# cv2.waitKey(1)
-		
+				break	
 
 
 	def on_mouse(self,event,x,y,flags,param):
 		
 		if event == cv2.EVENT_LBUTTONDOWN:
-			
-			#cv2.circle(self.dst,(x,y),5,[255,255,0],2)
-			#print(self.Color)
 			self.Color = [int(self.dst[y,x][0]),int(self.dst[y,x][1]),int(self.dst[y,x][2])]
 			print(self.Color)
 
@@ -94,11 +87,7 @@ class TransformMaze(object):
 		erosion = cv2.erode(mask,kernel,iterations = 1)
 		dilation = cv2.dilate(erosion,kernel,iterations = 3)
 
-
 		blurred = cv2.GaussianBlur(dilation, (5, 5), 0)
-
-		#newsrc = cv2.resize(blurred,None,fx=0.5, fy=0.5, interpolation = cv2.INTER_CUBIC)
-
 
 		# find contours in the thresholded image
 		cnts = cv2.findContours(blurred.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
