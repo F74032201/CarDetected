@@ -1,7 +1,7 @@
 from tkinter import *	
 import tkinter.font as font
 from tkinter.scrolledtext import *
-from threading import Thread
+from threading import Thread, Lock
 from Transform import *
 import threading,os
 from Connection import *
@@ -57,6 +57,7 @@ class myThreadFrame(Thread):
 		Thread.__init__(self)
 		self.cap = cap
 		self.frame = None
+		self.frame_lock = Lock()
 
 	def run(self):
 		while True:
