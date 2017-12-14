@@ -34,9 +34,9 @@ class TransformMaze(object):
 		pts2 = np.float32([[0,0],[self.width,0],[0,self.height],[self.width,self.height]])
 		M = cv2.getPerspectiveTransform(pts1,pts2)
 
-		self.framethread.framelock.acquire()
+		self.framethread.frame_lock.acquire()
 		self.Result = cv2.warpPerspective(self.framethread.frame,M,(self.width,self.height)) 
-		self.framethread.framelock.acquire()
+		self.framethread.frame_lock.release()
 
 	def RefreshColor(self):
 		cv2.namedWindow('Set Color (q to quit)')
@@ -46,9 +46,9 @@ class TransformMaze(object):
 		while True:
 			# if ret == False:
 			# 	break
-			self.framethread.framelock.acquire()
+			self.framethread.frame_lock.acquire()
 			self.dst = self.framethread.frame
-			self.framethread.framelock.release()
+			self.framethread.frame_lock.release()
 			self.RefreshPoints()
 			
 			if show_flag :
@@ -75,9 +75,9 @@ class TransformMaze(object):
 	def RefreshPoints(self):
 		#convert RGB to HSV
 
-		self.framethread.framelock.acquire()
+		self.framethread.frame_lock.acquire()
 		hsv = cv2.cvtColor(self.framethread.frame, cv2.COLOR_BGR2HSV)
-		self.framethread.framelock.release()
+		self.framethread.frame_lock.release()
 		color = np.uint8([[self.Color]])
 		hsv_color = cv2.cvtColor(color, cv2.COLOR_BGR2HSV)
 

@@ -102,7 +102,6 @@ class ServerConnection:
 			            #In Windows, sometimes when a TCP program closes abruptly,
 			            # a "Connection reset by peer" exception will be thrown
 			            data = sock.recv(self.RECV_BUFFER).decode('utf-8')
-			            print(data)
 			            #regist id
 			            if 'Register' in data:
 			                sock.send("Master|Client hello!\r".encode(encoding='utf-8'))

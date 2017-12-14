@@ -1,5 +1,5 @@
 from tkinter import *	
-from threading import Thread
+from threading import Thread, Lock
 from colors import rgb,hex #pip3 install colors.py
 import numpy as np
 import cv2
@@ -111,7 +111,7 @@ class Player(object):
 			# 	break
 
 			
-			car = self.FindPos(self.tmp_frame,(0,0))
+			car = self.FindPos(self.tmp_frame,self.DP.Result_lock,(0,0))
 			cv2.circle( self.tmp_frame, car, 5, (0, 0, 150), -1)
 			# print("1")
 			cv2.imshow('Set Color (s to quit)',self.tmp_frame)
@@ -146,12 +146,12 @@ class Player(object):
 			print(self.Color)
 			
 
-	def FindPos(self,src,lastcar):
+	def FindPos(self, src, lock, lastcar):
 		# print("in Find")
 		#convert RGB to HSV
-		self.src.Result_lock.acquire()
-		hsv = cv2.cvtColor(src.Result, cv2.COLOR_BGR2HSV)
-		self.src.Result_lock.release()
+		lock.acquire()
+		hsv = cv2.cvtColor(src, cv2.COLOR_BGR2HSV)
+		lock.release()
 
 		color = np.uint8([[self.Color]])
 		
@@ -209,8 +209,8 @@ class Player(object):
 		Dpos = [0,0]
 		while self.Connected:
 			#Find positions of two parallel planes
-			Upos = self.FindPos(self.UP,Upos)
-			Dpos = self.FindPos(self.DP,Dpos)
+			Upos = self.FindPos(self.UP.Result,self.UP.Result_lock,Upos)
+			Dpos = self.FindPos(self.DP.Result,self.DP.Result_lock,Dpos)
 			
 			#Calculate real position
 			lastX = (( Upos[0] * self.carHigh ) + (Dpos[0] * (self.wallHigh - self.carHigh))) / self.wallHigh
