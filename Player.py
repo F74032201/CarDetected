@@ -102,7 +102,9 @@ class Player(object):
 	def RefreshColor(self):
 		cv2.namedWindow('Set Color (s to quit)')
 		cv2.setMouseCallback('Set Color (s to quit)',self.on_mouse)
+		self.DP.Result_lock.acquire()
 		self.tmp_frame = self.DP.Result
+		self.DP.Result_lock.release()
 
 		while True:
 			# if ret == False:
@@ -117,7 +119,9 @@ class Player(object):
 			cv2.waitKey(1)
 			cv2.waitKey(1)
 			cv2.waitKey(1)
+			self.DP.Result_lock.acquire()
 			self.tmp_frame = self.DP.Result
+			self.DP.Result_lock.release()
 			# print("2")
 			if cv2.waitKey(1) & 0xFF == ord('s'):
 				cv2.destroyWindow("Set Color (s to quit)")
@@ -145,7 +149,9 @@ class Player(object):
 	def FindPos(self,src,lastcar):
 		# print("in Find")
 		#convert RGB to HSV
-		hsv = cv2.cvtColor(src, cv2.COLOR_BGR2HSV)
+		self.src.Result_lock.acquire()
+		hsv = cv2.cvtColor(src.Result, cv2.COLOR_BGR2HSV)
+		self.src.Result_lock.release()
 
 		color = np.uint8([[self.Color]])
 		
@@ -203,9 +209,9 @@ class Player(object):
 		Dpos = [0,0]
 		while self.Connected:
 			#Find positions of two parallel planes
-			Upos = self.FindPos(self.UP.Result,Upos)
-			Dpos = self.FindPos(self.DP.Result,Dpos)
-
+			Upos = self.FindPos(self.UP,Upos)
+			Dpos = self.FindPos(self.DP,Dpos)
+			
 			#Calculate real position
 			lastX = (( Upos[0] * self.carHigh ) + (Dpos[0] * (self.wallHigh - self.carHigh))) / self.wallHigh
 			lastY = (( Upos[1] * self.carHigh ) + (Dpos[1] * (self.wallHigh - self.carHigh))) / self.wallHigh
