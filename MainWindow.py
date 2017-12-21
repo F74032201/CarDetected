@@ -207,6 +207,7 @@ def GameRestart(Con,chatbox):
 			Con.ser_send_data(idx,"Start")
 
 	# sort dst points and save into str
+	dst_tmp = [(dst[0]*64 + 32, dst[1]*64 + 32) for dst in dst_tmp]
 	random.shuffle(dst_tmp)
 	for idx in range(0,len(dst_tmp)):
 		Con.rand_dst += str(dst_tmp[idx])
@@ -216,7 +217,7 @@ if __name__ == "__main__":
 	win = Tk()
 
 	#create camera obj
-	cap = cv2.VideoCapture(0)
+	cap = cv2.VideoCapture(1)
 
 	cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280);
 	cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720);
