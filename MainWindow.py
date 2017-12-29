@@ -189,14 +189,24 @@ def score_cal(app,team,num):
 		app.teamB_score.set("Score: " + str(app.teamB_point))
 	app._text_surf = app.scorefont.render("Score : Team_A : "+str(app.teamA_point)+"    Team_B : "+str(app.teamB_point), False, (255, 255, 255))
 
+def GameRestart(Con,chatbox):
+	gamethread = GameThread(Con)
+	gamethread.start()
+
+	#send start to everyone
+	for idx in list(Con.player):
+		if type(Con.player[idx]) != type('a'):
+			Con.ser_send_data(idx,"Start")
+			chatbox.insert(INSERT, 'Master send to %s : %s\n' %(Con.player[idx].name,"Start"))
+			chatbox.see(END)
 
 if __name__ == "__main__":
 	win = Tk()
 
 	#create camera obj
-	cap = cv2.VideoCapture(1)
+	cap = cv2.VideoCapture(0)
 
-	cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1080);
+	cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280);
 	cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720);
 
 	framethread = myThreadFrame(cap)
@@ -278,7 +288,7 @@ if __name__ == "__main__":
 	message_label1 = Label(main_frame_player_box,text="勾選以下用戶做操作:").pack(side = LEFT)	
 
 
-	gamebt = Button(win , text = 'Game Start' ,command=GameThread(Con,app).start ).pack()
+	gamebt = Button(win , text = 'Game Start' ,command = lambda: GameRestart(Con,chatbox) ).pack()
 
 
 	#window size setting

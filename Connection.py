@@ -18,7 +18,6 @@ class ServerConnection:
 	def ser_send_data(self,sock,message):
 		#Sending message from server
 		tmp_message = 'Master|' + message + '\r'
-		print(message)
 		try :
 			sock.send(tmp_message.encode(encoding='utf-8'))
 			#Print to the window
@@ -37,9 +36,9 @@ class ServerConnection:
 					try :
 						tmp_message = self.player[sock].name + message[message.index('|'):] # src name
 						socket.send(tmp_message.encode(encoding='utf-8'))
-						
+						print(message[message.index('|')+1:])
 						#Print to the window
-						self.chatbox.insert(INSERT, '%s send to %s : %s\n' %(self.player[sock].name,Name,message[message.index('|')+1:]))
+						self.chatbox.insert(INSERT, '%s send to %s : %s\n' %(self.player[sock].name,Name,message[message.index('|')+1:len(message)-1]))
 						self.chatbox.see(END)
 						
 					except :

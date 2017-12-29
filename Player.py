@@ -81,10 +81,8 @@ class Player(object):
 
 			
 			self.FindPos(self.tmp_frame,(0,0))
-			print("1")
 			cv2.imshow('Set Color',self.tmp_frame)
 			self.tmp_frame = self.DP.Result
-			print("2")
 			if cv2.waitKey(1) & 0xFF == ord('s'):
 				cv2.destroyWindow("Set Color")
 				cv2.waitKey(1)
