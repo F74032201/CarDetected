@@ -2,9 +2,9 @@ from pygame.locals import *
 import pygame
 import time
 from random import randint
-
+from tkinter import messagebox
 import os
-
+import random
 
 def ChangeColor(image,color):
 	w, h = image.get_size()
@@ -39,39 +39,61 @@ class Game:
 
 		return False
 
+		
+
 class Tower:
-	x = 0
-	y = 0
-	step = 64
 	picwidth = 32
-	def __init__(self,x,y):
-		self.x = x * self.step + self.step/4
-		self.y = y * self.step + self.step/4
-		self.image = pygame.image.load('img/tower.png').convert()
+	def __init__(self,xy,block_size,pic):
+		self.block_size = block_size
+		self.x,self.y = xy
+		self.x = self.x * self.block_size + self.block_size/4
+		self.y = self.y * self.block_size + self.block_size/4
+		self.image = pygame.image.load(pic).convert()
 		self.image = pygame.transform.scale(self.image,(self.picwidth,self.picwidth))
 		self.image.set_colorkey( (0,0,0), RLEACCEL )
+		self.done = False
+		self.id = 0
+
 	def draw(self, surface):
-		surface.blit(self.image,(self.x , self.y))
+		surface.blit(self.image,(self.x , self.y ))
 
-class App:
+class Wall:
+	x = 0
+	y = 0
+	def __init__(self,x,y):
+		self.x = x
+		self.y = y
+	def draw_v(self, surface):
+		# pygame.draw.circle(surface, [0, 0, 255], (self.x, self.y), 5, 0)
+		pygame.draw.rect(surface, [0, 0, 255], (self.x-2.5, self.y-32, 5, 64))
+	def draw_h(self, surface):
+		# pygame.draw.circle(surface, [0, 0, 255], (self.x, self.y), 5, 0)
+		pygame.draw.rect(surface, [0, 0, 255], (self.x-32, self.y-2.5, 64, 5))
 
-	GameWidth = 512
-	GameHeigh = 512
-	textsurfHeight = 30
-	windowHeigh = GameHeigh + textsurfHeight
-	windowWidth =512
-	tower = 0
-	teamA_point = 0
-	teamB_point = 0
 
-	def __init__(self,Con,teamA_score,teamB_score):
+class App:	
+	tower = {}
+
+	def __init__(self,Con):
 		self.Con = Con
 		self._running = True
+		self._GG = None
 		self._display_surf = None
 		self._image_surf = None
 		self._text_surf = None
-		self.teamA_score = teamA_score
-		self.teamB_score = teamB_score
+		self.block_size = Con.block_size
+		self.GameHeigh = Con.border_H * Con.block_size
+		self.GameWidth = Con.border_W * Con.block_size
+		self.textsurfHeight = 30
+		self.windowHeigh = self.GameHeigh + self.textsurfHeight
+		self.windowWidth = self.GameWidth
+		self.count_down_30 = False # use to record the base to open
+		self.Base = {'A':(7,7),'B':(1,1)} # Set Base for A,B
+		self.turret = {'A':[(2,7),(3,6),(4,5),(5,4),(6,3),(7,2)]\
+					  ,'B':[(1,6),(2,5),(3,4),(4,3),(5,2),(6,1)]\
+					  ,'C':[(1,7),(2,6),(3,5),(4,4),(5,3),(6,2),(7,1)]} # Set turret position
+		self.tower['A_Base'] = None
+		self.tower['B_Base'] = None
 		self.game = Game()
 		self.on_init()
 		
@@ -79,101 +101,197 @@ class App:
 	def on_init(self):
 		pygame.init()
 		self._display_surf = pygame.display.set_mode((self.windowWidth, self.windowHeigh), pygame.HWSURFACE)
-		pygame.display.set_caption('Tower War')
+		pygame.display.set_caption('Tower War (esc to quit)')
 
 		pygame.font.init() # you have to call this at the start, if you want to use this module.
 		self.scorefont = pygame.font.SysFont('Comic Sans MS', 30)
 
-		self.bg_image = pygame.image.load('img/map.jpg').convert()
+		self.bg_image = pygame.image.load('img/finalmap.png').convert()
 		self.bg_image = pygame.transform.scale(self.bg_image,(self.GameWidth,self.GameHeigh))
+		self.start_ticks = pygame.time.get_ticks()
+		self.count_down = 180 # count down for 3 mins
+		self.passed_sec = int((pygame.time.get_ticks() - self.start_ticks)/1000) # milliseconds to seconds
+		self.game_time_sec = self.count_down - self.passed_sec # left sec
+		self.game_time_sec10 = int(self.game_time_sec/10)
+		self.game_time_sec = int(self.game_time_sec%10)
+		self.game_time_min = int(self.game_time_sec10/6)
+		self.game_time_sec10 = int(self.game_time_sec10%6)
+		self._text_surf = self.scorefont.render("Remaining Time : "+str(self.game_time_min)+": "+str(self.game_time_sec10)\
+		+str(self.game_time_sec), False, (255, 255, 255))
 		# self._running = True
 		# self.add_player([0,0,255], "A") #0
 		# # self.add_player([255,0,0], "B") #1
 		# self.player[1].x = self.player[1].map_width-self.player[1].picwidth
 		# self.player[1].y = self.player[1].map_height-self.player[1].picwidth
-		self.tower = Tower(5,5)
-		self._text_surf = self.scorefont.render("Score : Team_A : "+str(self.teamA_point)+"    Team_B : "+str(self.teamB_point), False, (255, 255, 255))
+		
+		# self._text_surf = self.scorefont.render("Score : Team_A : "+str(self.teamA_point)+"    Team_B : "+str(self.teamB_point), False, (255, 255, 255))
+		self.Tower_init()
 
+		# self.init_wall()
 
-	
+	def Tower_init(self):
+		self.tower['A'] = Tower(self.turret['A'][random.randint(0,5)],self.block_size,'img/tower.png')
+		self.tower['B'] = Tower(self.turret['B'][random.randint(0,5)],self.block_size,'img/tower.png')
+		self.tower['C'] = Tower(self.turret['C'][random.randint(0,6)],self.block_size,'img/tower.png')
+		
 
 	def on_event(self, event):
 		if event.type == QUIT:
 			self._running = False
 
 	def on_loop(self):
+		self.passed_sec = int((pygame.time.get_ticks() - self.start_ticks)/1000) # milliseconds to seconds
+		self.game_time_sec = self.count_down - self.passed_sec # left sec
+		self.game_time_sec10 = int(self.game_time_sec/10)
+		self.game_time_sec = int(self.game_time_sec%10)
+		self.game_time_min = int(self.game_time_sec10/6)
+		self.game_time_sec10 = int(self.game_time_sec10%6)
+		self._text_surf = self.scorefont.render("Remaining Time : "+str(self.game_time_min)+": "+str(self.game_time_sec10)\
+		+str(self.game_time_sec), False, (255, 255, 255))
+		self.isGG()		# Check whether the game is over.
+		self.is_open_base()	# Check whether the bases shoud be opened or not, if so then open it, or close it.
 		
 
-		#does car catch tower	
-		# for i in range(0,len(self.Con.player)):
-		for i in list(self.Con.player):
-			if type(self.Con.player[i]) != type('a'):
-				if self.Con.player[i].image == None:
-					self.Con.player[i].game_init()
-					self.Con.player[i].direction = -1
-					#ChangeColor(self.Con.player[i].image, self.Con.player[i].Color)
-			
-				self.Con.player[i].update()	
-				if self.game.isCollision(self.tower.x,self.tower.y,self.Con.player[i].x,self.Con.player[i].y,30):
-					self.tower.x = randint(0,self.GameWidth/self.tower.step -1)*self.tower.step + self.tower.step/4
-					self.tower.y = randint(0,self.GameHeigh/self.tower.step -1)*self.tower.step + self.tower.step/4
-					if self.Con.player[i].team == "A" :
-						self.teamA_point += 10
-						self.teamA_score.set("Score: "+str(self.teamA_point))
-					elif self.Con.player[i].team == "B" :
-						self.teamB_point += 10
-						self.teamB_score.set("Score: "+str(self.teamB_point))
-					self._text_surf = self.scorefont.render("Score : Team_A : "+str(self.teamA_point)+"    Team_B : "+str(self.teamB_point), False, (255, 255, 255))
+	def isGG(self):
+		if self.count_down - self.passed_sec <= 0: # Time's up
+			self._running = False
+			if self.sum_of_teams('A') > self.sum_of_teams('B'):
+				self._GG = 'A Won!'
+			elif self.sum_of_teams('A') < self.sum_of_teams('B'):
+				self._GG = 'B Won!'
+			# If scores are the same
+			elif self.blood_of_teams('A') > self.blood_of_teams('B'):
+				self._GG = 'A Won!'
+			elif self.blood_of_teams('A') < self.blood_of_teams('B'):
+				self._GG = 'B Won!'
+			else: # tied game
+				self._GG = 'Tied game!'
+			return 
+		else:		# Still have time!
+			# Check if everyone gains scores, or who won the game.
+			for i in list(self.Con.player):
+				if type(self.Con.player[i]) != type('a'):
+					if self.Con.player[i].image == None:
+						self.Con.player[i].game_init()
+						self.Con.player[i].direction = -1
+					self.Con.player[i].update()	
+					for j in list(self.tower):
+						if self.tower[j]:
+							if self.game.isCollision(self.tower[j].x,self.tower[j].y,self.Con.player[i].x,self.Con.player[i].y,32):
+								# if self.tower[j].id == self.Con.player[i].id and (not self.tower[j].done):
+								# if collision then get score and reset the turret
+								if j == 'A_Base': # Got the base and team A won the game
+									self._GG = 'A'
+									self._running = False
+									return
+								elif j == 'B_Base': # Got the base and team B won the game
+									self._GG = 'B'
+									self._running = False
+									return
+								elif j == 'C': # step into neutral zone
+									self.Con.player[i].score += 10
+									self.tower[j] = Tower(self.turret['C'][random.randint(0,6)],self.block_size,'img/tower.png')
+								elif j == 'A' and self.Con.player[i].team == 'A': # step into blue zone
+									self.Con.player[i].score += 5
+									self.tower[j] = Tower(self.turret['A'][random.randint(0,5)],self.block_size,'img/tower.png')
+								elif j == 'B' and self.Con.player[i].team == 'B': # step into red zone
+									self.Con.player[i].score += 5
+									self.tower[j] = Tower(self.turret['B'][random.randint(0,5)],self.block_size,'img/tower.png')
 
-				
+	def blood_control(self):
+		"""minus 1 every 3 seconds"""
 		pass
+
+	def is_open_base(self):
+		A_B = self.sum_of_teams('A') - self.sum_of_teams('B')
+		# check the base condition and change it
+		if self.count_down - self.passed_sec <= 175 and not self.count_down_30:
+			self.count_down_30 = True
+			print('30')
+			self.open_base('A')
+			self.open_base('B')
+		elif not self.count_down_30:
+			if A_B >= 5:
+				self.open_base('A')
+			elif A_B < 5:
+				self.close_base('A')
+			if (-1)*A_B >= 5:
+				self.open_base('B')
+			elif (-1)*A_B < 5:
+				self.close_base('B')
+
+	def open_base(self,team):
+		# Open the base that the team can occupy.
+		if team == 'A' and not self.tower['A_Base']:
+			self.tower['A_Base'] = Tower((7,7),self.block_size,'img/base.png')
+		elif team == 'B'and not self.tower['B_Base']:
+			self.tower['B_Base'] = Tower((1,1),self.block_size,'img/base.png')
+
+	def close_base(self,team):
+		if team == 'A':
+			self.tower['A_Base'] = None
+		elif team == 'B':
+			self.tower['B_Base'] = None
+
+	def sum_of_teams(self,team):
+		Sum = 0 # temp sum to calculate total score
+		for idx in list(self.Con.player) :
+			if type(self.Con.player[idx]) != type('a') and self.Con.player[idx].team == team:
+				Sum += self.Con.player[idx].score
+		return Sum
+
+	def blood_of_teams(self,team):
+		Sum = 0 # temp sum to calculate total score
+		for idx in list(self.Con.player) :
+			if type(self.Con.player[idx]) != type('a') and self.Con.player[idx].team == team:
+				Sum += self.Con.player[idx].blood
+		return Sum
 
 	def on_render(self):
 		self._display_surf.fill((0,0,0))
 		self._display_surf.blit(self.bg_image,(0, 0))
+		for i in list(self.tower):
+			if self.tower[i]:
+				self.tower[i].draw(self._display_surf)
 		for i in list(self.Con.player):
 			if type(self.Con.player[i]) != type('a'):
 				self.Con.player[i].draw(self._display_surf)
-		self.tower.draw(self._display_surf)
 		self._display_surf.blit(self._text_surf,(0,self.GameHeigh))
 		pygame.display.flip()
 		
 	def on_cleanup(self):
 		pygame.quit()
 		print("pygame.quit()")
+		if self._GG:
+			#print all player finished time to the screen
+			print_mes = "\tTeam A:\n"
+			#print team A
+			for i in list(self.Con.player):
+				if type(self.Con.player[i]) != type('a') and self.Con.player[i].team == 'A':
+					print_mes = print_mes + ("%s blood: %d / score： %d\n" \
+						%(self.Con.player[i].name,self.Con.player[i].blood,self.Con.player[i].score))
+			print_mes = print_mes + "\n\n\tTeam B:\n"
+			#print team B
+			for i in list(self.Con.player):
+				if type(self.Con.player[i]) != type('a') and self.Con.player[i].team == 'B':
+					print_mes = print_mes + ("%s blood: %d / score： %d\n" \
+						%(self.Con.player[i].name,self.Con.player[i].blood,self.Con.player[i].score))
+					# self.Con.player[i].done = False
+			print_mes = print_mes + ("\n剩餘時間: %d分 %d%d秒" \
+				%(self.game_time_min,self.game_time_sec10,self.game_time_sec))
+			messagebox.showinfo(self._GG,print_mes)
+		for i in list(self.Con.player):
+			if type(self.Con.player[i]) != type('a'):
+				self.Con.player[i].blood = 180
+				self.Con.player[i].score = 0
+		self.tower = {}
 
 	def on_execute(self):
-		if self.on_init() == False:
-			self._running = False
-
 		while(self._running):
 			pygame.event.pump()
 			keys = pygame.key.get_pressed()
 
-			if (keys[pygame.K_RIGHT]) or (keys[pygame.K_KP6]):
-				self.Con.player[1].moveRight()
 			
-			if (keys[pygame.K_LEFT]) or (keys[pygame.K_KP4]):
-				self.Con.player[1].moveLeft()
-
-			if (keys[pygame.K_UP]) or (keys[pygame.K_KP8]):
-				self.Con.player[1].moveUp()
-	
-			if (keys[pygame.K_DOWN]) or (keys[pygame.K_KP2]):
-				self.Con.player[1].moveDown()
-
-			if (keys[pygame.K_g]):
-				self.Con.player[2].moveRight()
-			
-			if (keys[pygame.K_d]):
-				self.Con.player[2].moveLeft()
-
-			if (keys[pygame.K_r]):
-				self.Con.player[2].moveUp()
-	
-			if (keys[pygame.K_f]):
-				self.Con.player[2].moveDown()
-
 			if (keys[pygame.K_ESCAPE]):
 				print("esc")
 				self._running = False

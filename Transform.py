@@ -35,8 +35,8 @@ class TransformMaze(object):
 		self.Result = cv2.warpPerspective(self.framethread.frame,M,(self.width,self.height)) 
 
 	def RefreshColor(self):
-		cv2.namedWindow('Set Color')
-		cv2.setMouseCallback('Set Color',self.on_mouse)
+		cv2.namedWindow('Set Color (q to quit)')
+		cv2.setMouseCallback('Set Color (q to quit)',self.on_mouse)
 		show_flag = True
 
 		while True:
@@ -47,19 +47,17 @@ class TransformMaze(object):
 			self.RefreshPoints()
 			
 			if show_flag :
-				cv2.imshow('Set Color',self.dst)
+				cv2.imshow('Set Color (q to quit)',self.dst)
 
 			if cv2.waitKey(1) & 0xFF == ord('q'):
 				
 				show_flag = False
-
+				cv2.destroyWindow("Set Color (q to quit)")
+				cv2.waitKey(1)
+				cv2.waitKey(1)
+				cv2.waitKey(1)
+				cv2.waitKey(1)
 				break
-		cv2.waitKey(1)
-		cv2.destroyWindow("Set Color")
-		cv2.waitKey(1)
-		cv2.waitKey(1)
-		cv2.waitKey(1)
-		cv2.waitKey(1)
 
 
 	def on_mouse(self,event,x,y,flags,param):
