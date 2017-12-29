@@ -87,11 +87,13 @@ class App:
 		self.textsurfHeight = 30
 		self.windowHeigh = self.GameHeigh + self.textsurfHeight
 		self.windowWidth = self.GameWidth
-		self.count_down_30 = False # use to record the base to open
-		self.Base = {'A':(7,7),'B':(1,1)} # Set Base for A,B
-		self.turret = {'A':[(2,7),(3,6),(4,5),(5,4),(6,3),(7,2)]\
-					  ,'B':[(1,6),(2,5),(3,4),(4,3),(5,2),(6,1)]\
-					  ,'C':[(1,7),(2,6),(3,5),(4,4),(5,3),(6,2),(7,1)]} # Set turret position
+		self.open_base_time = -1
+		self.count_down_final = False # use to record the base to open
+		self.Base = {'A':(7,7),'B':(1,1)} # Set Base for A,B. 
+		self.turret = {'A':[(6,1),(7,1),(7,2),(7,3),(6,4),(5,5),(4,6),(3,7)]\
+					  ,'B':[(5,1),(4,2),(3,3),(2,4),(1,5),(1,6),(1,7),(2,7)]\
+					  ,'C':[(2,5),(2,6),(3,4),(3,5),(3,6),(4,3),(4,4),(4,5)\
+					  		,(4,6),(5,2),(5,3),(5,4),(6,2),(6,3)]} # Set turret position
 		self.tower['A_Base'] = None
 		self.tower['B_Base'] = None
 		self.game = Game()
@@ -127,6 +129,10 @@ class App:
 		# self._text_surf = self.scorefont.render("Score : Team_A : "+str(self.teamA_point)+"    Team_B : "+str(self.teamB_point), False, (255, 255, 255))
 		self.Tower_init()
 
+		for i in list(self.Con.player):		
+			if type(self.Con.player[i]) != type('a'):
+				self.Con.player[i].stay_pos = self.Con.player[i].big_pos()
+				self.Con.player[i].stay_time = self.passed_sec
 		# self.init_wall()
 
 	def Tower_init(self):
@@ -148,6 +154,15 @@ class App:
 		self.game_time_sec10 = int(self.game_time_sec10%6)
 		self._text_surf = self.scorefont.render("Remaining Time : "+str(self.game_time_min)+": "+str(self.game_time_sec10)\
 		+str(self.game_time_sec), False, (255, 255, 255))
+		# Setting sending text into connection object.
+		if self.tower['A']:
+			self.Con.towers_pos = [(int(self.tower['A'].x + self.block_size/4), int(self.tower['A'].y + self.block_size/4))\
+				, (int(self.tower['B'].x + self.block_size/4), int(self.tower['B'].y + self.block_size/4))\
+				, (int(self.tower['C'].x + self.block_size/4), int(self.tower['C'].y + self.block_size/4))]
+		self.Con.base_situation['A'] = 'O' if not self.tower['B_Base'] else 'C'
+		self.Con.base_situation['B'] = 'O' if not self.tower['A_Base'] else 'C'
+
+		self.blood_control()	# Change blood in any situation.
 		self.isGG()		# Check whether the game is over.
 		self.is_open_base()	# Check whether the bases shoud be opened or not, if so then open it, or close it.
 		
@@ -170,7 +185,8 @@ class App:
 		else:		# Still have time!
 			# Check if everyone gains scores, or who won the game.
 			for i in list(self.Con.player):
-				if type(self.Con.player[i]) != type('a'):
+				if type(self.Con.player[i]) != type('a') and \
+					self.Con.player[i].still_alive:
 					if self.Con.player[i].image == None:
 						self.Con.player[i].game_init()
 						self.Con.player[i].direction = -1
@@ -189,49 +205,98 @@ class App:
 									self._running = False
 									return
 								elif j == 'C': # step into neutral zone
-									self.Con.player[i].score += 10
+									self.Con.player[i].score += 3
 									self.tower[j] = Tower(self.turret['C'][random.randint(0,6)],self.block_size,'img/tower.png')
-								elif j == 'A' and self.Con.player[i].team == 'A': # step into blue zone
+								elif j == 'A' and self.Con.player[i].team == 'A': # A step into A zone.
 									self.Con.player[i].score += 5
 									self.tower[j] = Tower(self.turret['A'][random.randint(0,5)],self.block_size,'img/tower.png')
-								elif j == 'B' and self.Con.player[i].team == 'B': # step into red zone
+								elif j == 'A' and self.Con.player[i].team == 'B': # B step int A zone.
+									self.Con.player[i].score += 1
+									self.Con.player[i].blood += 3
+									self.tower[j] = Tower(self.turret['A'][random.randint(0,5)],self.block_size,'img/tower.png')
+								elif j == 'B' and self.Con.player[i].team == 'B': # B step into B zone.
 									self.Con.player[i].score += 5
 									self.tower[j] = Tower(self.turret['B'][random.randint(0,5)],self.block_size,'img/tower.png')
+								elif j == 'B' and self.Con.player[i].team == 'A': # A step int B zone.
+									self.Con.player[i].score += 1
+									self.Con.player[i].blood += 3
+									self.tower[j] = Tower(self.turret['B'][random.randint(0,5)],self.block_size,'img/tower.png')
+		# If game is not over, check who is out of blood.
+		for i in list(self.Con.player):
+			if type(self.Con.player[i]) != type('a') and \
+				self.Con.player[i].blood <= 0 and self.Con.player[i].still_alive:
+				self.Con.player[i].blood = 0
+				self.Con.ser_send_data(i, "UDie")
+				self.Con.player[i].still_alive = False		
+				self.Con.player[i].BSVar.set('blood:'+str(self.Con.player[i].blood) \
+						+ '/score:'+str(self.Con.player[i].score))		
+		return
+
 
 	def blood_control(self):
-		"""minus 1 every 3 seconds"""
-		pass
+		for i in list(self.Con.player):		
+			if type(self.Con.player[i]) != type('a') and self.Con.player[i].still_alive:
+				# minus 1 blood every sec.
+				if self.Con.player[i].blood_count != self.count_down - self.passed_sec:
+					self.Con.player[i].blood_count = self.count_down - self.passed_sec
+					self.Con.player[i].blood -= 1
+				# Stay at a place last for 3 sec, then minus blood 10cc.
+				if self.Con.player[i].big_pos()\
+					!= self.Con.player[i].stay_pos:
+					self.Con.player[i].stay_time = self.passed_sec
+					self.Con.player[i].stay_pos = self.Con.player[i].big_pos()
+				elif self.passed_sec - self.Con.player[i].stay_time > 3:
+					self.Con.player[i].blood -= 10
+					self.Con.player[i].stay_time = self.passed_sec
+		# if nobody alive game over.
+		self._running = False
+		for i in list(self.Con.player):		
+			if type(self.Con.player[i]) != type('a') and self.Con.player[i].still_alive:
+				self._running = True
+				return 
+		self.count_down = 0
+		return
 
 	def is_open_base(self):
 		A_B = self.sum_of_teams('A') - self.sum_of_teams('B')
 		# check the base condition and change it
-		if self.count_down - self.passed_sec <= 175 and not self.count_down_30:
-			self.count_down_30 = True
+		if self.count_down - self.passed_sec <= 10 and not self.count_down_final:
+			self.count_down_final = True
 			print('30')
 			self.open_base('A')
 			self.open_base('B')
-		elif not self.count_down_30:
+		elif not self.count_down_final and self.open_base_time < 0:
 			if A_B >= 5:
 				self.open_base('A')
-			elif A_B < 5:
-				self.close_base('A')
-			if (-1)*A_B >= 5:
+			elif (-1)*A_B >= 5:
 				self.open_base('B')
-			elif (-1)*A_B < 5:
-				self.close_base('B')
+		elif self.passed_sec - self.open_base_time > 10 and not self.count_down_final:	# 10s
+			self.close_base('A')
+			self.close_base('B')
 
 	def open_base(self,team):
+		# if open last for 10 sec.
+		self.open_base_time = self.passed_sec
 		# Open the base that the team can occupy.
 		if team == 'A' and not self.tower['A_Base']:
 			self.tower['A_Base'] = Tower((7,7),self.block_size,'img/base.png')
 		elif team == 'B'and not self.tower['B_Base']:
 			self.tower['B_Base'] = Tower((1,1),self.block_size,'img/base.png')
+		# Clear all the tower.
+		self.tower['A'] = None
+		self.tower['B'] = None 
+		self.tower['C'] = None
 
 	def close_base(self,team):
+		self.open_base_time = -1
 		if team == 'A':
 			self.tower['A_Base'] = None
 		elif team == 'B':
 			self.tower['B_Base'] = None
+		# Reset all the towers.
+		self.tower['A'] = Tower(self.turret['A'][random.randint(0,5)],self.block_size,'img/tower.png')
+		self.tower['B'] = Tower(self.turret['B'][random.randint(0,5)],self.block_size,'img/tower.png')
+		self.tower['C'] = Tower(self.turret['C'][random.randint(0,6)],self.block_size,'img/tower.png')
 
 	def sum_of_teams(self,team):
 		Sum = 0 # temp sum to calculate total score
@@ -254,7 +319,8 @@ class App:
 			if self.tower[i]:
 				self.tower[i].draw(self._display_surf)
 		for i in list(self.Con.player):
-			if type(self.Con.player[i]) != type('a'):
+			if type(self.Con.player[i]) != type('a') and \
+				self.Con.player[i].still_alive:
 				self.Con.player[i].draw(self._display_surf)
 		self._display_surf.blit(self._text_surf,(0,self.GameHeigh))
 		pygame.display.flip()
@@ -284,6 +350,9 @@ class App:
 			if type(self.Con.player[i]) != type('a'):
 				self.Con.player[i].blood = 180
 				self.Con.player[i].score = 0
+				self.Con.player[i].still_alive = True
+		self.Con.towers_pos = [(-1,-1),(-1,-1),(-1,-1)]
+		self.Con.base_situation = {'A':'C', 'B':'C'}
 		self.tower = {}
 
 	def on_execute(self):

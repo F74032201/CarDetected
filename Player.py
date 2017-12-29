@@ -40,7 +40,11 @@ class Player(object):
 		self.name = name
 		self.id = 0
 		self.done = False
-		self.blood = 180	
+		self.blood = 180
+		self.blood_count = 180
+		self.stay_time = 0
+		self.stay_pos = (-1,-1)
+		self.still_alive = True
 		self.score = 0
 		self.picwidth =32
 		self.pos = (-1,-1)
@@ -100,18 +104,23 @@ class Player(object):
 	def RefreshColor(self):
 		cv2.namedWindow('Set Color (s to quit)')
 		cv2.setMouseCallback('Set Color (s to quit)',self.on_mouse)
+		self.DP.Result_lock.acquire()
 		self.tmp_frame = self.DP.Result
+		self.DP.Result_lock.release()
 
 		while True:
-			
-			car = self.FindPos(self.tmp_frame,(0,0))
+			car = self.FindPos(self.tmp_frame,self.DP.Result_lock,(0,0))
 			cv2.circle( self.tmp_frame, car, 5, (0, 0, 150), -1)
+			# print("1")
 			cv2.imshow('Set Color (s to quit)',self.tmp_frame)
 			cv2.waitKey(1)
 			cv2.waitKey(1)
 			cv2.waitKey(1)
 			cv2.waitKey(1)
+			self.DP.Result_lock.acquire()
 			self.tmp_frame = self.DP.Result
+			self.DP.Result_lock.release()
+			# print("2")
 			if cv2.waitKey(1) & 0xFF == ord('s'):
 				cv2.destroyWindow("Set Color (s to quit)")
 				cv2.waitKey(1)
@@ -135,10 +144,12 @@ class Player(object):
 			print(self.Color)
 			
 
-	def FindPos(self,src,lastcar):
+	def FindPos(self, src, lock, lastcar):
 		# print("in Find")
 		#convert RGB to HSV
+		lock.acquire()
 		hsv = cv2.cvtColor(src, cv2.COLOR_BGR2HSV)
+		lock.release()
 
 		color = np.uint8([[self.Color]])
 		
@@ -188,6 +199,7 @@ class Player(object):
 		moments = cv2.moments(cnts[maxNum])
 		car = int(moments['m10']/moments['m00']), int(moments['m01']/moments['m00'])
 
+		
 		return car
 
 	def RefreshPos(self):
@@ -195,9 +207,9 @@ class Player(object):
 		Dpos = [0,0]
 		while self.Connected:
 			#Find positions of two parallel planes
-			Upos = self.FindPos(self.UP.Result,Upos)
-			Dpos = self.FindPos(self.DP.Result,Dpos)
-
+			Upos = self.FindPos(self.UP.Result,self.UP.Result_lock,Upos)
+			Dpos = self.FindPos(self.DP.Result,self.DP.Result_lock,Dpos)
+			
 			#Calculate real position
 			lastX = (( Upos[0] * self.carHigh ) + (Dpos[0] * (self.wallHigh - self.carHigh))) / self.wallHigh
 			lastY = (( Upos[1] * self.carHigh ) + (Dpos[1] * (self.wallHigh - self.carHigh))) / self.wallHigh
@@ -271,4 +283,6 @@ class Player(object):
 		self.carHigh = int(self.HighStr.get())
 		print("%s's car high set to %d" %(self.name,self.carHigh))
 
+	def big_pos(self):
+		return (int(self.x / self.block_size), int(self.y / self.block_size))
 

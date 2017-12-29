@@ -19,15 +19,18 @@ class ServerConnection:
 		self.player_num = 0
 		self.chatbox = chatbox
 		self.game_start = False
+		self.towers_pos = [(-1,-1),(-1,-1),(-1,-1)]
+		self.base_situation = {'A':'C', 'B':'C'}
 
 	def ser_send_data(self,sock,message):
 		#Sending message from server
 		tmp_message = 'Master|' + message + '\r'
 		try :
 			sock.send(tmp_message.encode(encoding='utf-8'))
-			#Print to the window
-			# self.chatbox.insert(INSERT, 'Master send to %s : %s\n' %(self.player[sock].name,message))
-			# self.chatbox.see(END)
+			if 'POS:' not in message:	
+				# Print to the window
+				self.chatbox.insert(INSERT, 'Master send to %s : %s\n' %(self.player[sock].name,message))
+				self.chatbox.see(END)
 		except :
 			# broken socket connection may be, chat client pressed ctrl+c for example
 			self.DELETE(sock)
@@ -112,19 +115,17 @@ class ServerConnection:
 			                elif data[8] == 'B':
 			                	self.player[sock] =  Player(self.rootB,data[10:],self.UP,self.DP,self.border_H,self.border_W,self.block_size)
 			                	self.player[sock].team = "B"
-			                self.player[sock].id = self.player_num
-			                self.player_num = self.player_num + 1
-			                # self.player[sock].team = "A"
 
-			                # self.player[sock].pos_thread.start()
-			                self.broadcast_data(sock,data + ' Join!\r')
 			                print(self.player[sock])
 
 			            elif 'Broadcast' in data:
 			                self.broadcast_data(sock,data+'\r') 
 
 			            elif 'Position' in data:
-			            	self.ser_send_data(sock,"POS:"+str((int(self.player[sock].x + 16),int(self.player[sock].y + 16))))
+			            	self.ser_send_data(sock,"POS:"+str((int(self.player[sock].x + 16),int(self.player[sock].y + 16)))\
+			            			+ "BaseA:" + str(self.base_situation['A'] + "BaseB:" + str(self.base_situation['A']))\
+			            			+ "Towers:" + str(self.towers_pos[0]) + str(self.towers_pos[1]) + str(self.towers_pos[2])\
+			            			+ "Blood:" + str(self.player[sock].blood))
 
 			            #sent to specific client   
 			            elif '|' in data:
