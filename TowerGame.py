@@ -120,6 +120,15 @@ class App:
 		self.game_time_sec10 = int(self.game_time_sec10%6)
 		self._text_surf = self.scorefont.render("Remaining Time : "+str(self.game_time_min)+": "+str(self.game_time_sec10)\
 		+str(self.game_time_sec), False, (255, 255, 255))
+		
+		for i in list(self.Con.player):
+			if type(self.Con.player[i]) != type('a'):
+				self.Con.player[i].blood = 180
+				self.Con.player[i].score = 0
+				self.Con.player[i].still_alive = True
+		self.Con.towers_pos = [(-1,-1),(-1,-1),(-1,-1)]
+		self.Con.base_situation = {'A':'C', 'B':'C'}
+
 		# self._running = True
 		# self.add_player([0,0,255], "A") #0
 		# # self.add_player([255,0,0], "B") #1
@@ -324,7 +333,7 @@ class App:
 				self.Con.player[i].draw(self._display_surf)
 		self._display_surf.blit(self._text_surf,(0,self.GameHeigh))
 		pygame.display.flip()
-		
+
 	def on_cleanup(self):
 		pygame.quit()
 		print("pygame.quit()")
@@ -346,32 +355,19 @@ class App:
 			print_mes = print_mes + ("\n剩餘時間: %d分 %d%d秒" \
 				%(self.game_time_min,self.game_time_sec10,self.game_time_sec))
 			messagebox.showinfo(self._GG,print_mes)
-		for i in list(self.Con.player):
-			if type(self.Con.player[i]) != type('a'):
-				self.Con.player[i].blood = 180
-				self.Con.player[i].score = 0
-				self.Con.player[i].still_alive = True
-		self.Con.towers_pos = [(-1,-1),(-1,-1),(-1,-1)]
-		self.Con.base_situation = {'A':'C', 'B':'C'}
-		self.tower = {}
+		
 
 	def on_execute(self):
 		while(self._running):
 			pygame.event.pump()
 			keys = pygame.key.get_pressed()
 
-			
-			if (keys[pygame.K_ESCAPE]):
-				print("esc")
-				self._running = False
-
 			self.on_loop()
 			self.on_render()
 			
 			time.sleep(100.0 / 1000.0)
+			if (keys[pygame.K_ESCAPE]):
+				print("esc")
+				self._running = False
 		self.on_cleanup()
 
-
-# if __name__ == "__main__" :
-# 	theApp = App()
-# 	theApp.on_execute()
