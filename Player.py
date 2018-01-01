@@ -85,7 +85,10 @@ class Player(object):
 			
 		self.BSVar = StringVar()
 		self.BSVar.set('blood:'+str(self.blood) + '/score:'+str(self.score))
-		self.BSlabel = Label(self.frame,textvariable = self.BSVar).pack(side = RIGHT)
+		self.BSlabel = Label(self.frame,textvariable = self.BSVar)
+		self.BSlabel.bind("<Button-1>", self.blood_add)
+		self.BSlabel.bind("<Button-3>", self.blood_minus)
+		self.BSlabel.pack(side = RIGHT)
 
 		self.HighStr = StringVar()
 		self.HighBtn = Button(self.frame,text = "設定車高",command =self.SetCarHigh).pack(side = RIGHT)
@@ -96,6 +99,14 @@ class Player(object):
 		self.CarPos = Label(self.frame,textvariable = self.CarPosStr).pack(side = LEFT)
 	def delete(self):
 		self.frame.destroy()
+
+	def blood_add(self ,event):
+		self.blood += 1
+		self.BSVar.set('blood:'+str(self.blood) + '/score:'+str(self.score))
+
+	def blood_minus(self ,event):
+		self.blood -= 1
+		self.BSVar.set('blood:'+str(self.blood) + '/score:'+str(self.score))
 
 	def create_setcolor_thread(self):
 		setcolor_thread = SetcolorThread(self)
