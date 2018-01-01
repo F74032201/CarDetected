@@ -127,6 +127,14 @@ class ServerConnection:
 			            			+ "Towers:" + str(self.towers_pos[0]) + str(self.towers_pos[1]) + str(self.towers_pos[2])\
 			            			+ "Blood:" + str(self.player[sock].blood))
 
+			            elif 'AskPos' in data:
+			            	for idx in self.player:
+			            		if type(self.player[idx]) != type('a'):
+			            			if self.player[idx].name == data[7:]:	# Find the player.
+			            				if self.player[sock].team == self.player[idx].team:	# Check that are they the same team.
+			            					self.ser_send_data(sock, str(self.player[idx].name) + ':' + \
+			            						str((int(self.player[idx].x + 16), int(self.player[idx].y + 16))))
+
 			            #sent to specific client   
 			            elif '|' in data:
 			                self.send_data(sock,data+'\r')
