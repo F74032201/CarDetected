@@ -812,3 +812,10 @@ class App:
 			
 			time.sleep(100.0 / 1000.0)
 		self.on_cleanup()
+		
+def namebox_control(App):
+	global scoretable
+	App.player_name = App.username.get()
+	time_mes = "%d分 %d%d秒"%(App.game_time_min,App.game_time_sec10,App.game_time_sec)
+	scoretable.append((App.player_name, App.point, time_mes))
+	App.namebox.quit()
