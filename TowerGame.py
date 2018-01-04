@@ -90,12 +90,14 @@ class App:
 		self.open_base_time = -1
 		self.count_down_final = False # use to record the base to open
 		self.Base = {'A':(7,7),'B':(1,1)} # Set Base for A,B. 
-		self.turret = {'A':[(6,1),(7,1),(7,2),(7,3),(6,4),(5,5),(4,6),(3,7)]\
-					  ,'B':[(5,1),(4,2),(3,3),(2,4),(1,5),(1,6),(1,7),(2,7)]\
-					  ,'C':[(2,5),(2,6),(3,4),(3,5),(3,6),(4,3),(4,4),(4,5)\
-					  		,(4,6),(5,2),(5,3),(5,4),(6,2),(6,3)]} # Set turret position
+		self.turret = {'A':[(7,3),(7,4),(6,4),(6,5),(5,5),(5,6),(4,6),(4,7),(3,7),(2,7)]\
+					  ,'B':[(1,4),(1,5),(2,3),(2,4),(3,2),(3,3),(4,1),(4,2),(5,1),(6,1)]\
+					  ,'C':[(7,1),(7,2),(6,2),(6,3),(5,2),(5,3),(5,4),(4,3),(4,4),(4,5) \
+					  		,(3,4),(3,5),(3,6),(2,5),(2,6),(1,6),(1,7)]} # Set turret position
 		self.tower['A_Base'] = None
 		self.tower['B_Base'] = None
+		self.defend_region = {'A':[(2,1),(3,1),(2,2),(1,2),(1,3)]\
+							, 'B':[(7,5),(7,6),(6,6),(6,7),(5,7)]}
 		self.game = Game()
 		self.on_init()
 		
@@ -174,7 +176,7 @@ class App:
 		self.blood_control()	# Change blood in any situation.
 		self.isGG()		# Check whether the game is over.
 		self.is_open_base()	# Check whether the bases shoud be opened or not, if so then open it, or close it.
-		
+		self.is_defend()
 
 	def isGG(self):
 		if self.count_down - self.passed_sec <= 0: # Time's up
@@ -214,21 +216,19 @@ class App:
 									self._running = False
 									return
 								elif j == 'C': # step into neutral zone
-									self.Con.player[i].score += 3
+									self.Con.player[i].score += 1
 									self.tower[j] = Tower(self.turret['C'][random.randint(0,6)],self.block_size,'img/tower.png')
 								elif j == 'A' and self.Con.player[i].team == 'A': # A step into A zone.
-									self.Con.player[i].score += 5
+									self.Con.player[i].score += 1
 									self.tower[j] = Tower(self.turret['A'][random.randint(0,5)],self.block_size,'img/tower.png')
 								elif j == 'A' and self.Con.player[i].team == 'B': # B step int A zone.
 									self.Con.player[i].score += 1
-									self.Con.player[i].blood += 3
 									self.tower[j] = Tower(self.turret['A'][random.randint(0,5)],self.block_size,'img/tower.png')
 								elif j == 'B' and self.Con.player[i].team == 'B': # B step into B zone.
-									self.Con.player[i].score += 5
+									self.Con.player[i].score += 1
 									self.tower[j] = Tower(self.turret['B'][random.randint(0,5)],self.block_size,'img/tower.png')
 								elif j == 'B' and self.Con.player[i].team == 'A': # A step int B zone.
 									self.Con.player[i].score += 1
-									self.Con.player[i].blood += 3
 									self.tower[j] = Tower(self.turret['B'][random.randint(0,5)],self.block_size,'img/tower.png')
 		# If game is not over, check who is out of blood.
 		for i in list(self.Con.player):
@@ -266,6 +266,38 @@ class App:
 		self.count_down = 0
 		return
 
+	def is_defend(self):
+		# one of base is opened.(not in last 10 secs) 
+		if self.Con.base_situation['A'] == 'O' and self.Con.base_situation['B'] == 'C':
+			# Check every player of team A is in the defend region or not.
+			for i in list(self.Con.player):
+				if type(self.Con.player[i]) != type('a') and \
+					self.Con.player[i].still_alive and self.Con.player[i].team == 'A':
+					if self.Con.player[i].big_pos() not in self.defend_region['A']:
+						return
+			# Successive defend
+			self.close_base('A')
+			# Random select a player to add score.
+			for i in list(self.Con.player):
+				if type(self.Con.player[i]) != type('a') and \
+					self.Con.player[i].still_alive and self.Con.player[i].team == 'A':
+						self.Con.player[i].blood += 5
+
+		elif self.Con.base_situation['B'] == 'O' and self.Con.base_situation['A'] == 'C':
+			# Check every player of team B is in the defend region or not.
+			for i in list(self.Con.player):
+				if type(self.Con.player[i]) != type('a') and \
+					self.Con.player[i].still_alive and self.Con.player[i].team == 'B':
+					if self.Con.player[i].big_pos() not in self.defend_region['B']:
+						return
+			# Successive defend
+			self.close_base('B')
+			# Random select a player to add score.
+			for i in list(self.Con.player):
+				if type(self.Con.player[i]) != type('a') and \
+					self.Con.player[i].still_alive and self.Con.player[i].team == 'B':
+						self.Con.player[i].blood += 5
+
 	def is_open_base(self):
 		A_B = self.sum_of_teams('A') - self.sum_of_teams('B')
 		# check the base condition and change it
@@ -275,10 +307,16 @@ class App:
 			self.open_base('A')
 			self.open_base('B')
 		elif not self.count_down_final and self.open_base_time < 0:
-			if A_B >= 5:
+			if A_B >= 3:
 				self.open_base('A')
-			elif (-1)*A_B >= 5:
+				for i in list(self.Con.player):
+					if type(self.Con.player[i]) != type('a'):
+						self.Con.player[i].score = 0
+			elif (-1)*A_B >= 3:
 				self.open_base('B')
+				for i in list(self.Con.player):
+					if type(self.Con.player[i]) != type('a'):
+						self.Con.player[i].score = 0
 		elif self.passed_sec - self.open_base_time > 10 and not self.count_down_final:	# 10s
 			self.close_base('A')
 			self.close_base('B')

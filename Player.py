@@ -295,5 +295,5 @@ class Player(object):
 		print("%s's car high set to %d" %(self.name,self.carHigh))
 
 	def big_pos(self):
-		return (int(self.x / self.block_size), int(self.y / self.block_size))
+		return (int((self.x+16) / self.block_size), int((self.y+16) / self.block_size))
 
