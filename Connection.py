@@ -123,7 +123,7 @@ class ServerConnection:
 
 			            elif 'Position' in data:
 			            	self.ser_send_data(sock,"POS:"+str((int(self.player[sock].x + 16),int(self.player[sock].y + 16)))\
-			            			+ "BaseA:" + str(self.base_situation['A'] + "BaseB:" + str(self.base_situation['A']))\
+			            			+ "BaseA:" + str(self.base_situation['A'] + "BaseB:" + str(self.base_situation['B']))\
 			            			+ "Towers:" + str(self.towers_pos[0]) + str(self.towers_pos[1]) + str(self.towers_pos[2])\
 			            			+ "Blood:" + str(self.player[sock].blood))
 

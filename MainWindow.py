@@ -222,14 +222,12 @@ def GameRestart(Con,chatbox):
 	for idx in list(Con.player):
 		if type(Con.player[idx]) != type('a'):
 			Con.ser_send_data(idx,"Start")
-			chatbox.insert(INSERT, 'Master send to %s : %s\n' %(Con.player[idx].name,"Start"))
-			chatbox.see(END)
 
 if __name__ == "__main__":
 	win = Tk()
 
 	#create camera obj
-	cap = cv2.VideoCapture(0)
+	cap = cv2.VideoCapture(1)
 
 	cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280);
 	cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720);
