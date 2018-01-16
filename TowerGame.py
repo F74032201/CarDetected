@@ -298,7 +298,6 @@ class App:
 			self.close_base('B')
 			# Add blood to every player.
 			self.add_team_blood('B', 5)
-		return
 
 	def is_open_base(self):
 		# check the base condition and change it
@@ -377,10 +376,7 @@ class App:
 		self.tower['C'] = None
 
 	def close_base(self,team):
-		if team == 'A':
-			self.Con.base_situation['B'] = 'C'
-		else:
-			self.Con.base_situation['A'] = 'C'
+		self.Con.base_situation[team] = 'C'
 			
 		self.open_base_time = -1
 		if team == 'A':
