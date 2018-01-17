@@ -308,12 +308,12 @@ class App:
 			self.open_base('B')
 		elif not self.count_down_final and self.open_base_time < 0:	#base not open
 			if self.sum_of_teams('A') >= 3:
-				self.open_base('A')
+				self.open_base('B')
 				for i in list(self.Con.player):
 					if type(self.Con.player[i]) != type('a'):
 						self.Con.player[i].score = 0
 			if self.sum_of_teams('B') >= 3:
-				self.open_base('B')
+				self.open_base('A')
 				for i in list(self.Con.player):
 					if type(self.Con.player[i]) != type('a'):
 						self.Con.player[i].score = 0
@@ -350,16 +350,11 @@ class App:
 
 
 	def open_base(self,team):
-		if team == 'A':
-			self.Con.base_situation['B'] = 'O'
-			# Log base open time
-			self.Con.chatbox.insert(INSERT, 'Base B opened at: %d分 %d%d秒\n' \
-				%(self.game_time_min,self.game_time_sec10,self.game_time_sec))
-		else:
-			self.Con.base_situation['A'] = 'O'
-			# Log base open time
-			self.Con.chatbox.insert(INSERT, 'Base A opened at: %d分 %d%d秒\n' \
-				%(self.game_time_min,self.game_time_sec10,self.game_time_sec))
+
+		self.Con.base_situation[team] = 'O'
+		# Log base open time
+		self.Con.chatbox.insert(INSERT, 'Base %s opened at: %d分 %d%d秒\n' \
+			%(team,self.game_time_min,self.game_time_sec10,self.game_time_sec))
 		self.Con.chatbox.see(END)
 
 		# if open last for 10 sec.
@@ -379,10 +374,8 @@ class App:
 		self.Con.base_situation[team] = 'C'
 			
 		self.open_base_time = -1
-		if team == 'A':
-			self.tower['A_Base'] = None
-		elif team == 'B':
-			self.tower['B_Base'] = None
+		self.tower[team+'_Base'] = None
+		
 		# Reset all the towers.
 		self.tower['A'] = Tower(self.turret['A'][random.randint(0,9)],self.block_size,'img/tower.png')
 		self.tower['B'] = Tower(self.turret['B'][random.randint(0,9)],self.block_size,'img/tower.png')
