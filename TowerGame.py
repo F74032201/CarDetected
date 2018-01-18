@@ -130,7 +130,7 @@ class App:
 				self.Con.player[i].blood = 180
 				self.Con.player[i].score = 0
 				self.Con.player[i].still_alive = True
-				self.Con.player[i]._blood_surf = self.scorefont.render("Hp:"+self.Con.player[i].blood, False, (255, 255, 255))
+
 		self.Con.towers_pos = [(-1,-1),(-1,-1),(-1,-1)]
 		self.Con.base_situation = {'A':'C', 'B':'C'}
 
@@ -266,7 +266,7 @@ class App:
 				elif self.passed_sec - self.Con.player[i].stay_time > 3:
 					self.Con.player[i].blood -= 1
 					self.Con.player[i].stay_time = self.passed_sec
-				self.Con.player[i]._blood_surf = self.scorefont.render("Hp:"+self.Con.player[i].blood, False, (255, 255, 255))
+				self.Con.player[i]._blood_surf = self.Con.player[i].bloodfont.render("Hp:"+str(self.Con.player[i].blood), False, (0, 0, 0))
 		# if nobody alive game over.
 		self._running = False
 		for i in list(self.Con.player):		
