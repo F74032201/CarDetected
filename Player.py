@@ -241,6 +241,8 @@ class Player(object):
 		self.angle = 0
 		self.image = pygame.image.load("img/car.png").convert()
 		self.image = pygame.transform.scale(self.image,(self.picwidth,self.picwidth))
+		self.bloodfont = pygame.font.SysFont('Comic Sans MS', 10)
+		self._blood_surf = None
 
 	def update(self):
 
@@ -288,6 +290,7 @@ class Player(object):
 	def draw(self, surface):
 		#print(self.x,self.y)
 		surface.blit(self.image,(self.x,self.y))
+		surface.blit(self._blood_surf, (self.x+5, self.y-5))
 
 
 	def SetCarHigh(self):
