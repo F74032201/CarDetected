@@ -18,7 +18,7 @@ $ workon cv
 #### Install other package
 ```sh
 (cv) $ sudo apt install python3-tk
-(cv) $ pip install -r requirement.txt
+(cv) $ pip install -r requirements.txt
 ```
 
 ## Running the test
