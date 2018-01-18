@@ -116,8 +116,9 @@ class App:
 
 		self.bg_image = pygame.image.load('img/finalmap.png').convert()
 		self.bg_image = pygame.transform.scale(self.bg_image,(self.GameWidth,self.GameHeigh))
-		self.score_image = pygame.image.load(pic).convert()
+		self.score_image = pygame.image.load('img/tower.png').convert()
 		self.score_image = pygame.transform.scale(self.score_image,(25, 25))
+		ChangeColor(self.score_image, [0, 255, 255])
 		self.start_ticks = pygame.time.get_ticks()
 		self.count_down = 300 # count down for 3 mins
 		self.passed_sec = int((pygame.time.get_ticks() - self.start_ticks)/1000) # milliseconds to seconds
@@ -413,12 +414,12 @@ class App:
 				self.Con.player[i].still_alive:
 				self.Con.player[i].draw(self._display_surf)
 		self._display_surf.blit(self._time_surf,(0,self.GameHeigh))
-		self._score_surf = self.scorefont.render("A            B", False, (255, 255, 255))
+		self._score_surf = self.scorefont.render("A:                    B:", False, (255, 255, 255))
 		self._display_surf.blit(self._score_surf,(self.GameWidth/2, self.GameHeigh))
-		for i in range(0,sum_of_teams('A')):
-			self._display_surf.blit(self.score_image,(self.GameWidth/2 + i*27.5, self.GameHeight))
-		for i in range(0,sum_of_teams('B')):
-			self._display_surf.blit(self.score_image,(self.GameWidth/2 + i*27.5, self.GameHeight))
+		for i in range(0,self.sum_of_teams('A')):
+			self._display_surf.blit(self.score_image,(self.GameWidth/2 + (i+1)*27.5, self.GameHeigh))
+		for i in range(0,self.sum_of_teams('B')):
+			self._display_surf.blit(self.score_image,(self.GameWidth/2 + 140 + (i+1)*27.5, self.GameHeigh))
 		pygame.display.flip()
 
 	def on_cleanup(self):
