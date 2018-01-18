@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 from operator import itemgetter
 import imutils
-
+from threading import Thread, Lock
 
 class TransformMaze(object):
 	def __init__(self,framethread):
@@ -16,6 +16,7 @@ class TransformMaze(object):
 		self.width = 512
 		self.height = 512
 
+		self.Result_lock = Lock()
 
 	#for thread
 	def RefreshResult(self):
@@ -32,49 +33,51 @@ class TransformMaze(object):
 		pts1 = np.float32(self.Points)
 		pts2 = np.float32([[0,0],[self.width,0],[0,self.height],[self.width,self.height]])
 		M = cv2.getPerspectiveTransform(pts1,pts2)
+
+		self.framethread.frame_lock.acquire()
 		self.Result = cv2.warpPerspective(self.framethread.frame,M,(self.width,self.height)) 
+		self.framethread.frame_lock.release()
 
 	def RefreshColor(self):
-		cv2.namedWindow('Set Color')
-		cv2.setMouseCallback('Set Color',self.on_mouse)
+		cv2.namedWindow('Set Color (q to quit)')
+		cv2.setMouseCallback('Set Color (q to quit)',self.on_mouse)
 		show_flag = True
 
 		while True:
 			# if ret == False:
 			# 	break
-
+			self.framethread.frame_lock.acquire()
 			self.dst = self.framethread.frame
+			self.framethread.frame_lock.release()
 			self.RefreshPoints()
 			
 			if show_flag :
-				cv2.imshow('Set Color',self.dst)
+				cv2.imshow('Set Color (q to quit)',self.dst)
 
 			if cv2.waitKey(1) & 0xFF == ord('q'):
 				
 				show_flag = False
-
-				break
-		cv2.waitKey(1)
-		cv2.destroyWindow("Set Color")
-		cv2.waitKey(1)
-		cv2.waitKey(1)
-		cv2.waitKey(1)
-		cv2.waitKey(1)
+				cv2.destroyWindow("Set Color (q to quit)")
+				cv2.waitKey(1)
+				cv2.waitKey(1)
+				cv2.waitKey(1)
+				cv2.waitKey(1)
+				break	
 
 
 	def on_mouse(self,event,x,y,flags,param):
 		
 		if event == cv2.EVENT_LBUTTONDOWN:
-			
-			#cv2.circle(self.dst,(x,y),5,[255,255,0],2)
-			#print(self.Color)
 			self.Color = [int(self.dst[y,x][0]),int(self.dst[y,x][1]),int(self.dst[y,x][2])]
 			print(self.Color)
 
 
 	def RefreshPoints(self):
 		#convert RGB to HSV
+
+		self.framethread.frame_lock.acquire()
 		hsv = cv2.cvtColor(self.framethread.frame, cv2.COLOR_BGR2HSV)
+		self.framethread.frame_lock.release()
 		color = np.uint8([[self.Color]])
 		hsv_color = cv2.cvtColor(color, cv2.COLOR_BGR2HSV)
 
@@ -94,11 +97,7 @@ class TransformMaze(object):
 		erosion = cv2.erode(mask,kernel,iterations = 1)
 		dilation = cv2.dilate(erosion,kernel,iterations = 3)
 
-
 		blurred = cv2.GaussianBlur(dilation, (5, 5), 0)
-
-		#newsrc = cv2.resize(blurred,None,fx=0.5, fy=0.5, interpolation = cv2.INTER_CUBIC)
-
 
 		# find contours in the thresholded image
 		cnts = cv2.findContours(blurred.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)

@@ -4,26 +4,33 @@ from tkinter.scrolledtext import *
 from Player import *
 
 class ServerConnection:
-	def __init__(self,rootA,rootB,chatbox,UP,DP):
+	def __init__(self,rootA,rootB,chatbox,UP,DP,border_H,border_W,block_size):
 		self.UP = UP
 		self.DP = DP
 		self.rootA = rootA
 		self.rootB = rootB
+		self.border_H = border_H
+		self.border_W = border_W
+		self.block_size = block_size
 		self.RECV_BUFFER = 4096 
 		self.PORT = 5000
 		self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.player = {}
+		self.player_num = 0
 		self.chatbox = chatbox
+		self.game_start = False
+		self.towers_pos = [(-1,-1),(-1,-1),(-1,-1)]
+		self.base_situation = {'A':'C', 'B':'C'}
 
 	def ser_send_data(self,sock,message):
 		#Sending message from server
 		tmp_message = 'Master|' + message + '\r'
-		print(message)
 		try :
 			sock.send(tmp_message.encode(encoding='utf-8'))
-			#Print to the window
-			# self.chatbox.insert(INSERT, 'Master send to %s : %s\n' %(self.player[sock].name,message))
-			# self.chatbox.see(END)
+			if 'POS:' not in message:	
+				# Print to the window
+				self.chatbox.insert(INSERT, 'Master send to %s : %s\n' %(self.player[sock].name,message))
+				self.chatbox.see(END)
 		except :
 			# broken socket connection may be, chat client pressed ctrl+c for example
 			self.DELETE(sock)
@@ -37,11 +44,11 @@ class ServerConnection:
 					try :
 						tmp_message = self.player[sock].name + message[message.index('|'):] # src name
 						socket.send(tmp_message.encode(encoding='utf-8'))
-						'''
+						print(message[message.index('|')+1:])
 						#Print to the window
-						self.chatbox.insert(INSERT, '%s send to %s : %s\n' %(self.player[sock].name,Name,message[message.index('|')+1:]))
+						self.chatbox.insert(INSERT, '%s send to %s : %s\n' %(self.player[sock].name,Name,message[message.index('|')+1:len(message)-1]))
 						self.chatbox.see(END)
-						'''
+						
 					except :
 						# broken socket connection may be, chat client pressed ctrl+c for example
 						self.DELETE(socket)
@@ -81,8 +88,9 @@ class ServerConnection:
 
 			for sock in read_sockets:
 			    #New connection
-			    if sock == self.server_socket:
+			    if sock == self.server_socket and not self.game_start:
 			        # Handle the case in which there is a new connection recieved through server_socket
+			        # If game has started client can't enter the room.
 			        sockfd, addr = self.server_socket.accept()
 			        self.player[sockfd] = ''
 
@@ -102,22 +110,30 @@ class ServerConnection:
 			                sock.send("Master|Client hello!\r".encode(encoding='utf-8'))
 			                #create player obj
 			                if data[8] == 'A':
-			                	self.player[sock] =  Player(self.rootA,data[10:],self.UP,self.DP)
-			                elif data[8] == 'B':
-			                	self.player[sock] =  Player(self.rootB,data[10:],self.UP,self.DP)
+			                	self.player[sock] =  Player(self.rootA,data[10:],self.UP,self.DP,self.border_H,self.border_W,self.block_size)
 			                	self.player[sock].team = "A"
 			                elif data[8] == 'B':
-			                	self.player[sock] =  Player(self.rootB,data[10:],self.UP,self.DP)
+			                	self.player[sock] =  Player(self.rootB,data[10:],self.UP,self.DP,self.border_H,self.border_W,self.block_size)
 			                	self.player[sock].team = "B"
-			                # self.player[sock].pos_thread.start()
-			                self.broadcast_data(sock,data + ' Join!\r')
+
 			                print(self.player[sock])
 
 			            elif 'Broadcast' in data:
 			                self.broadcast_data(sock,data+'\r') 
 
 			            elif 'Position' in data:
-			            	self.ser_send_data(sock,str(self.player[sock].pos)+"(256,256)")
+			            	self.ser_send_data(sock,"POS:"+str((int(self.player[sock].x + 16),int(self.player[sock].y + 16)))\
+			            			+ "BaseA:" + str(self.base_situation['A'] + "BaseB:" + str(self.base_situation['B']))\
+			            			+ "Towers:" + str(self.towers_pos[0]) + str(self.towers_pos[1]) + str(self.towers_pos[2])\
+			            			+ "Blood:" + str(self.player[sock].blood))
+
+			            elif 'AskPos' in data:
+			            	for idx in self.player:
+			            		if type(self.player[idx]) != type('a'):
+			            			if self.player[idx].name == data[7:]:	# Find the player.
+			            				if self.player[sock].team == self.player[idx].team:	# Check that are they the same team.
+			            					self.ser_send_data(sock, str(self.player[idx].name) + ':' + \
+			            						str((int(self.player[idx].x + 16), int(self.player[idx].y + 16))))
 
 			            #sent to specific client   
 			            elif '|' in data:

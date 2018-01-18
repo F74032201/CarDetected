@@ -1,7 +1,7 @@
 from tkinter import *	
 import tkinter.font as font
 from tkinter.scrolledtext import *
-from threading import Thread
+from threading import Thread, Lock
 from Transform import *
 import threading,os
 from Connection import *
@@ -10,7 +10,7 @@ import numpy as np
 import cv2
 
 start_count = 0
-maze_count = 0
+
 
 class myThread(Thread):
 	"""docstring for myThread"""
@@ -38,25 +38,10 @@ class myThreadTransform(Thread):
 		self._stop_event = threading.Event()
 
 	def run(self):
-		cv2.namedWindow('UP')
 		show_flag = True
 		while True:
 			self.UP.RefreshResult()
 			self.DP.RefreshResult()
-
-			if show_flag:
-				cv2.imshow('UP',self.UP.Result)
-				cv2.imshow('DP',self.DP.Result)
-
-			if cv2.waitKey(1) & 0xFF == ord('w'):				
-				show_flag = not show_flag
-				cv2.waitKey(1)
-				cv2.destroyWindow("UP")
-				cv2.destroyWindow("DP")
-				cv2.waitKey(1)
-				cv2.waitKey(1)
-				cv2.waitKey(1)
-				cv2.waitKey(1)
 
 
 	def stop(self):
@@ -72,6 +57,7 @@ class myThreadFrame(Thread):
 		Thread.__init__(self)
 		self.cap = cap
 		self.frame = None
+		self.frame_lock = Lock()
 
 	def run(self):
 		while True:
@@ -80,6 +66,7 @@ class myThreadFrame(Thread):
 			self.frame = cv2.resize(Frame,None,fx=1, fy=1, interpolation = cv2.INTER_CUBIC)
 			if ret == False:
 				break
+
 
 class GameThread(Thread):
 	def __init__(self, Con):
@@ -93,7 +80,43 @@ class GameThread(Thread):
 				self.Con.player[idx].game_init()
 				ChangeColor(self.Con.player[idx].image,self.Con.player[idx].Color)
 		self.App.on_execute()
-					
+
+class MazeColorThread(Thread):
+	"""Thread for picking maze color."""
+	def __init__(self, UP,DP):
+		Thread.__init__(self)
+		self.UP = UP
+		self.DP = DP
+		
+	def run(self):
+		self.UP.RefreshColor()
+		self.DP.RefreshColor()
+
+
+class RefreahPointsThread(MazeColorThread):
+	"""Thread for refreshing 4 points and show the results."""
+	def run(self):
+		self.UP.RefreshPoints()
+		self.DP.RefreshPoints()
+		cv2.namedWindow('UP (w to quit)')
+		cv2.namedWindow('DP (w to quit)')
+		while 1:
+			cv2.imshow('UP (w to quit)',self.UP.Result)
+			cv2.imshow('DP (w to quit)',self.DP.Result)
+
+			if cv2.waitKey(1) & 0xFF == ord('w'):
+				cv2.destroyWindow("UP (w to quit)")	
+				cv2.waitKey(1)
+				cv2.waitKey(1)
+				cv2.waitKey(1)
+				cv2.waitKey(1)
+				cv2.destroyWindow("DP (w to quit)")
+				
+				cv2.waitKey(1)
+				cv2.waitKey(1)
+				cv2.waitKey(1)
+				cv2.waitKey(1)
+				break
 
 def Exit(r):
 	os._exit(1)
@@ -139,10 +162,15 @@ def transmit(Con,mes,chatbox):
 				chatbox.insert(INSERT, 'Master send to %s : %s\n' %(Con.player[idx].name,tmp_message))
 				chatbox.see(END)
 	
-def refresh_4(UP,DP):
-	UP.RefreshPoints()
-	DP.RefreshPoints()
+def create_refresh4_thread(UP, DP):
+	refresh4_thread = RefreahPointsThread(UP, DP)
+	refresh4_thread.start()
 	print("refresh points")
+
+def create_mazecolor_thread(UP, DP):
+	mazecolor_thread = MazeColorThread(UP,DP)
+	mazecolor_thread.start()
+	print("refresh color")	
 
 def MazeColor(UP,DP):
 	UP.RefreshColor()
@@ -180,6 +208,20 @@ def DisplayCar():
 			cv2.waitKey(1)
 			break
 
+def GameRestart(Con,chatbox):
+	gamethread = GameThread(Con)
+	gamethread.start()
+	Con.game_start = True
+
+
+def GameRestart(Con,chatbox):
+	gamethread = GameThread(Con)
+	gamethread.start()
+
+	#send start to everyone
+	for idx in list(Con.player):
+		if type(Con.player[idx]) != type('a'):
+			Con.ser_send_data(idx,"Start")
 
 if __name__ == "__main__":
 	win = Tk()
@@ -187,7 +229,7 @@ if __name__ == "__main__":
 	#create camera obj
 	cap = cv2.VideoCapture(1)
 
-	cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1080);
+	cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280);
 	cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720);
 
 	framethread = myThreadFrame(cap)
@@ -208,7 +250,7 @@ if __name__ == "__main__":
 	StartServerBtn.pack(side = LEFT)
 	ExitBtn = Button(main_frame,text = "結束", command = lambda: Exit(win),font = helv36)
 	ExitBtn.pack(side = RIGHT)
-	MazeColorBtn = Button(main_frame,text = "設定四角顏色", command = lambda: MazeColor(UP,DP),font = helv36)
+	MazeColorBtn = Button(main_frame,text = "設定四角顏色", command = lambda: create_mazecolor_thread(UP,DP),font = helv36)
 	MazeColorBtn.pack(side = LEFT)
 	Mbtn_text = StringVar()
 	Mbtn_text.set("開始校正")
@@ -231,7 +273,7 @@ if __name__ == "__main__":
 	main_frame_player_box.pack(fill='x',padx=10,pady=8)
 
 	main_frame_player_team = LabelFrame(main_frame_player)
-	main_frame_player_team.pack(fill='x',padx=5,pady=2)
+	main_frame_player_team.pack(fill='x',padx=10,pady=8)
 
 	main_frame_player_teamA = LabelFrame(main_frame_player_team,text = "Team A",foreground="red")
 	main_frame_player_teamA.pack(side = LEFT)
@@ -239,19 +281,21 @@ if __name__ == "__main__":
 	main_frame_player_teamB = LabelFrame(main_frame_player_team,text = "Team B",foreground="red")
 	main_frame_player_teamB.pack(side = RIGHT)
 	
+	border_H = 9
+	border_W = 9
+	block_size = 64
 	#create connection obj
-	Con = ServerConnection(main_frame_player_teamA , main_frame_player_teamB , chatbox , UP, DP)
+	Con = ServerConnection(main_frame_player_teamA,main_frame_player_teamB, chatbox , UP, DP,border_H,border_W,block_size)
 	Con.OpenServerSocket()
 
 	mes = StringVar()
-	refresh_4point = Button(main_frame_player_box , text = "攝影機晃到" , command = lambda:refresh_4(UP,DP)).pack(side = RIGHT)
+	refresh_4point = Button(main_frame_player_box , text = "攝影機晃到" , command = lambda:create_refresh4_thread(UP,DP)).pack(side = RIGHT)
 	delete_button = Button(main_frame_player_box, text = "踢除" , command = lambda: kick(Con)).pack(side = RIGHT)
 	message_button = Button(main_frame_player_box, text="傳送" , command = lambda: transmit(Con,mes,chatbox)).pack(side = RIGHT)	
 	message_textbox = Entry(main_frame_player_box, width=16, textvariable = mes).pack(side = RIGHT)
 	message_label1 = Label(main_frame_player_box,text="勾選以下用戶做操作:").pack(side = LEFT)	
-
-
-	gamebt = Button(win , text = 'Game Start' ,command=GameThread(Con).start ).pack()
+	
+	gamebt = Button(win , text = 'Game Start' ,command = lambda: GameRestart(Con,chatbox) ).pack()
 
 
 	#window size setting
@@ -261,8 +305,8 @@ if __name__ == "__main__":
 	ws = win.winfo_screenwidth() # width of the screen
 	hs = win.winfo_screenheight() # height of the screen
 	# calculate x and y coordinates for the Tk root window
-	x = (ws/2) - (950/2)
+	x = (ws/2) - (1080/2)
 	y = (hs/2) - (600/2)
 	# set the dimensions of the screen and where it is placed
-	win.geometry('%dx%d+%d+%d' % (950, 600, x, y))
+	win.geometry('%dx%d+%d+%d' % (1080, 600, x, y))
 	win.mainloop()

@@ -5,7 +5,7 @@ import numpy as np
 import cv2
 from operator import itemgetter
 import imutils
-
+from TowerGame import ChangeColor
 from pygame.locals import *
 import pygame
 
@@ -16,10 +16,21 @@ class PositionThread(Thread):
 		self.player = player
 		
 	def run(self):
+		if self.player.image != None:
+			ChangeColor(self.player.image, self.player.Color)
 		self.player.RefreshPos()
 
+class SetcolorThread(Thread):
+	"""Thread for setting color."""
+	def __init__(self, player):
+		Thread.__init__(self)
+		self.player = player
+
+	def run(self):
+		self.player.RefreshColor()
+
 class Player(object):
-	def __init__(self, root,name,UP,DP):
+	def __init__(self, root,name,UP,DP,border_H,border_W,block_size):
 		super(Player, self).__init__()
 		#obj of transformed frame
 		self.UP = UP
@@ -27,13 +38,31 @@ class Player(object):
 
 		self.root = root
 		self.name = name
-
-
+		self.id = 0
+		self.done = False
+		self.blood = 180
+		self.blood_count = 180
+		self.stay_time = 0
+		self.stay_pos = (-1,-1)
+		self.still_alive = True
+		self.score = 0
+		self.picwidth =32
 		self.pos = (-1,-1)
+
+		self.BaseOpen = False
+		self.border_H = border_H
+		self.border_W = border_W
+		self.block_size = block_size
+
 		self.x = 0
 		self.y = 0
 		self.Color = [0,0,0]
 		self.team = None
+		self.image = None
+
+		self.game_time_min = 0
+		self.game_time_sec = 0
+		self.game_time_sec10 = 0
 
 		#control the thread to be over
 		self.Connected = True
@@ -48,39 +77,63 @@ class Player(object):
 
 		self.CheckVar = IntVar()
 		self.C1 = Checkbutton(self.frame, variable = self.CheckVar,onvalue = 1, offvalue = 0).pack(side = LEFT)
-		self.SetColorBtn=Button(self.frame,text="Set color",command=self.RefreshColor).pack(side = LEFT)
+		self.SetColorBtn=Button(self.frame,text="Set color",command=self.create_setcolor_thread).pack(side = LEFT)
 
-		self.RGB = Label(self.frame,text = 'color')
-		self.RGB.pack(side = RIGHT)
+		self.RGB = Label(self.frame,text = '   ')
+		self.RGB.pack(side = LEFT)
 		self.startbt = Button(self.frame, text = "Start", command = self.pos_thread.start).pack(side = LEFT)
+			
+		self.BSVar = StringVar()
+		self.BSVar.set('blood:'+str(self.blood) + '/score:'+str(self.score))
+		self.BSlabel = Label(self.frame,textvariable = self.BSVar)
+		self.BSlabel.bind("<Button-1>", self.blood_add)
+		self.BSlabel.bind("<Button-3>", self.blood_minus)
+		self.BSlabel.pack(side = RIGHT)
+
 		self.HighStr = StringVar()
 		self.HighBtn = Button(self.frame,text = "設定車高",command =self.SetCarHigh).pack(side = RIGHT)
-		self.SetHighTextBox = Entry(self.frame,width = 8,textvariable = self.HighStr).pack(side = RIGHT)
-		
-		
+		self.SetHighTextBox = Entry(self.frame,width = 4,textvariable = self.HighStr).pack(side = RIGHT)
+
 		self.CarPosStr = StringVar()
 		self.CarPosStr.set(str(self.pos))
 		self.CarPos = Label(self.frame,textvariable = self.CarPosStr).pack(side = LEFT)
 	def delete(self):
 		self.frame.destroy()
 
+	def blood_add(self ,event):
+		self.blood += 1
+		self.BSVar.set('blood:'+str(self.blood) + '/score:'+str(self.score))
+
+	def blood_minus(self ,event):
+		self.blood -= 1
+		self.BSVar.set('blood:'+str(self.blood) + '/score:'+str(self.score))
+
+	def create_setcolor_thread(self):
+		setcolor_thread = SetcolorThread(self)
+		setcolor_thread.start()
+
 	def RefreshColor(self):
-		cv2.namedWindow('Set Color')
-		cv2.setMouseCallback('Set Color',self.on_mouse)
-		self.tmp_frame = self.UP.framethread.frame
+		cv2.namedWindow('Set Color (s to quit)')
+		cv2.setMouseCallback('Set Color (s to quit)',self.on_mouse)
+		self.DP.Result_lock.acquire()
+		self.tmp_frame = self.DP.Result
+		self.DP.Result_lock.release()
 
 		while True:
-			# if ret == False:
-			# 	break
-
-			
-			self.FindPos(self.tmp_frame,(0,0))
-			print("1")
-			cv2.imshow('Set Color',self.tmp_frame)
+			car = self.FindPos(self.tmp_frame,self.DP.Result_lock,(0,0))
+			cv2.circle( self.tmp_frame, car, 5, (0, 0, 150), -1)
+			# print("1")
+			cv2.imshow('Set Color (s to quit)',self.tmp_frame)
+			cv2.waitKey(1)
+			cv2.waitKey(1)
+			cv2.waitKey(1)
+			cv2.waitKey(1)
+			self.DP.Result_lock.acquire()
 			self.tmp_frame = self.DP.Result
-			print("2")
+			self.DP.Result_lock.release()
+			# print("2")
 			if cv2.waitKey(1) & 0xFF == ord('s'):
-				cv2.destroyWindow("Set Color")
+				cv2.destroyWindow("Set Color (s to quit)")
 				cv2.waitKey(1)
 				cv2.waitKey(1)
 				cv2.waitKey(1)
@@ -88,6 +141,8 @@ class Player(object):
 				break
 		#Set label color
 		self.RGB.config(bg = '#'+str(rgb(self.Color[2],self.Color[1],self.Color[0]).hex))
+		if self.image != None:
+			ChangeColor(self.image, self.Color)
 
 		
 	def on_mouse(self,event,x,y,flags,param):
@@ -100,10 +155,12 @@ class Player(object):
 			print(self.Color)
 			
 
-	def FindPos(self,src,lastcar):
+	def FindPos(self, src, lock, lastcar):
 		# print("in Find")
 		#convert RGB to HSV
+		lock.acquire()
 		hsv = cv2.cvtColor(src, cv2.COLOR_BGR2HSV)
+		lock.release()
 
 		color = np.uint8([[self.Color]])
 		
@@ -139,9 +196,6 @@ class Player(object):
 		
 
 		if (len(cnts)==0):		#can't detect. Use last result.
-			# self.dst = src
-			# ?self.pos = self.lastCenter
-			print("QQ")
 			return lastcar
 
 		#find the max area
@@ -156,7 +210,7 @@ class Player(object):
 		moments = cv2.moments(cnts[maxNum])
 		car = int(moments['m10']/moments['m00']), int(moments['m01']/moments['m00'])
 
-		cv2.circle( src, car, 5, (0, 0, 150), -1)
+		
 		return car
 
 	def RefreshPos(self):
@@ -164,9 +218,9 @@ class Player(object):
 		Dpos = [0,0]
 		while self.Connected:
 			#Find positions of two parallel planes
-			Upos = self.FindPos(self.UP.Result,Upos)
-			Dpos = self.FindPos(self.DP.Result,Dpos)
-
+			Upos = self.FindPos(self.UP.Result,self.UP.Result_lock,Upos)
+			Dpos = self.FindPos(self.DP.Result,self.DP.Result_lock,Dpos)
+			
 			#Calculate real position
 			lastX = (( Upos[0] * self.carHigh ) + (Dpos[0] * (self.wallHigh - self.carHigh))) / self.wallHigh
 			lastY = (( Upos[1] * self.carHigh ) + (Dpos[1] * (self.wallHigh - self.carHigh))) / self.wallHigh
@@ -174,14 +228,15 @@ class Player(object):
 
 			self.pos = (int(lastX),int(lastY))
 			self.x, self.y = self.pos
-			self.CarPosStr.set(str(self.pos))
+			self.x, self.y = (int(self.x / 512 * self.border_W * self.block_size - self.picwidth/2)\
+				,int(self.y / 512 * self.border_H * self.block_size - self.picwidth/2))
+			self.CarPosStr.set(str((int(self.x + self.picwidth/2), int(self.y + self.picwidth/2))))
 			# print(self.pos)
 
 	def game_init(self):
-		self.map_width = 512
-		self.map_height = 512
-		self.step = 32
-		self.picwidth =32
+		self.map_width = self.border_W * self.block_size
+		self.map_height = self.border_H * self.block_size
+		self.step = 32		
 		self.direction = 0
 		self.angle = 0
 		self.image = pygame.image.load("img/car.png").convert()
@@ -215,6 +270,8 @@ class Player(object):
 			self.y = self.map_height-self.picwidth
 		if self.y < 0:
 			self.y = 0
+		# update score and blood
+		self.BSVar.set('blood:'+str(self.blood) + '/score:'+str(self.score))
 
 	def moveRight(self):
 		self.direction = 0
@@ -229,7 +286,7 @@ class Player(object):
 		self.direction = 3
 	
 	def draw(self, surface):
-		print(self.x,self.y)
+		#print(self.x,self.y)
 		surface.blit(self.image,(self.x,self.y))
 
 
@@ -237,4 +294,6 @@ class Player(object):
 		self.carHigh = int(self.HighStr.get())
 		print("%s's car high set to %d" %(self.name,self.carHigh))
 
+	def big_pos(self):
+		return (int((self.x+16) / self.block_size), int((self.y+16) / self.block_size))
 
