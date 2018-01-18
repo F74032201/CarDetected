@@ -82,7 +82,8 @@ class App:
 		self._GG = None
 		self._display_surf = None
 		self._image_surf = None
-		self._text_surf = None
+		self._time_surf = None
+		self._score_surf = None
 		self.block_size = Con.block_size
 		self.GameHeigh = Con.border_H * Con.block_size
 		self.GameWidth = Con.border_W * Con.block_size
@@ -110,10 +111,13 @@ class App:
 		pygame.display.set_caption('Tower War (esc to quit)')
 
 		pygame.font.init() # you have to call this at the start, if you want to use this module.
+		self.timefont = pygame.font.SysFont('Comic Sans MS', 30)
 		self.scorefont = pygame.font.SysFont('Comic Sans MS', 30)
 
 		self.bg_image = pygame.image.load('img/finalmap.png').convert()
 		self.bg_image = pygame.transform.scale(self.bg_image,(self.GameWidth,self.GameHeigh))
+		self.score_image = pygame.image.load(pic).convert()
+		self.score_image = pygame.transform.scale(self.score_image,(25, 25))
 		self.start_ticks = pygame.time.get_ticks()
 		self.count_down = 300 # count down for 3 mins
 		self.passed_sec = int((pygame.time.get_ticks() - self.start_ticks)/1000) # milliseconds to seconds
@@ -122,7 +126,7 @@ class App:
 		self.game_time_sec = int(self.game_time_sec%10)
 		self.game_time_min = int(self.game_time_sec10/6)
 		self.game_time_sec10 = int(self.game_time_sec10%6)
-		self._text_surf = self.scorefont.render("Remaining Time : "+str(self.game_time_min)+": "+str(self.game_time_sec10)\
+		self._time_surf = self.timefont.render("Remaining Time : "+str(self.game_time_min)+": "+str(self.game_time_sec10)\
 		+str(self.game_time_sec), False, (255, 255, 255))
 		
 		for i in list(self.Con.player):
@@ -140,7 +144,7 @@ class App:
 		# self.player[1].x = self.player[1].map_width-self.player[1].picwidth
 		# self.player[1].y = self.player[1].map_height-self.player[1].picwidth
 		
-		# self._text_surf = self.scorefont.render("Score : Team_A : "+str(self.teamA_point)+"    Team_B : "+str(self.teamB_point), False, (255, 255, 255))
+		# self._time_surf = self.timefont.render("Score : Team_A : "+str(self.teamA_point)+"    Team_B : "+str(self.teamB_point), False, (255, 255, 255))
 		self.Tower_init()
 
 		for i in list(self.Con.player):		
@@ -166,7 +170,7 @@ class App:
 		self.game_time_sec = int(self.game_time_sec%10)
 		self.game_time_min = int(self.game_time_sec10/6)
 		self.game_time_sec10 = int(self.game_time_sec10%6)
-		self._text_surf = self.scorefont.render("Remaining Time : "+str(self.game_time_min)+": "+str(self.game_time_sec10)\
+		self._time_surf = self.timefont.render("Remaining Time : "+str(self.game_time_min)+": "+str(self.game_time_sec10)\
 		+str(self.game_time_sec), False, (255, 255, 255))
 		# Setting sending text into connection object.
 		# if self.tower['A']:
@@ -408,7 +412,13 @@ class App:
 			if type(self.Con.player[i]) != type('a') and \
 				self.Con.player[i].still_alive:
 				self.Con.player[i].draw(self._display_surf)
-		self._display_surf.blit(self._text_surf,(0,self.GameHeigh))
+		self._display_surf.blit(self._time_surf,(0,self.GameHeigh))
+		self._score_surf = self.scorefont.render("A            B", False, (255, 255, 255))
+		self._display_surf.blit(self._score_surf,(self.GameWidth/2, self.GameHeigh))
+		for i in range(0,sum_of_teams('A')):
+			self._display_surf.blit(self.score_image,(self.GameWidth/2 + i*27.5, self.GameHeight))
+		for i in range(0,sum_of_teams('B')):
+			self._display_surf.blit(self.score_image,(self.GameWidth/2 + i*27.5, self.GameHeight))
 		pygame.display.flip()
 
 	def on_cleanup(self):
