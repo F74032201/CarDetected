@@ -212,12 +212,7 @@ def GameRestart(Con,chatbox):
 	gamethread = GameThread(Con)
 	gamethread.start()
 	Con.game_start = True
-
-
-def GameRestart(Con,chatbox):
-	gamethread = GameThread(Con)
-	gamethread.start()
-
+	
 	#send start to everyone
 	for idx in list(Con.player):
 		if type(Con.player[idx]) != type('a'):
