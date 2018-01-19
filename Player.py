@@ -67,7 +67,7 @@ class Player(object):
 		#control the thread to be over
 		self.Connected = True
 		self.tmp_frame = None
-		self.wallHigh = 14.5
+		self.wallHigh = 10
 		self.carHigh = 10
 		#create thread to refresh position
 		self.pos_thread = PositionThread(self)
@@ -84,7 +84,7 @@ class Player(object):
 		self.startbt = Button(self.frame, text = "Start", command = self.pos_thread.start).pack(side = LEFT)
 			
 		self.BSVar = StringVar()
-		self.BSVar.set('blood:'+str(self.blood) + '/score:'+str(self.score))
+		self.BSVar.set('HP:'+str(self.blood) + '/score:'+str(self.score))
 		self.BSlabel = Label(self.frame,textvariable = self.BSVar)
 		self.BSlabel.bind("<Button-1>", self.blood_add)
 		self.BSlabel.bind("<Button-3>", self.blood_minus)
@@ -102,11 +102,11 @@ class Player(object):
 
 	def blood_add(self ,event):
 		self.blood += 1
-		self.BSVar.set('blood:'+str(self.blood) + '/score:'+str(self.score))
+		self.BSVar.set('HP:'+str(self.blood) + '/score:'+str(self.score))
 
 	def blood_minus(self ,event):
 		self.blood -= 1
-		self.BSVar.set('blood:'+str(self.blood) + '/score:'+str(self.score))
+		self.BSVar.set('HP:'+str(self.blood) + '/score:'+str(self.score))
 
 	def create_setcolor_thread(self):
 		setcolor_thread = SetcolorThread(self)
@@ -241,6 +241,8 @@ class Player(object):
 		self.angle = 0
 		self.image = pygame.image.load("img/car.png").convert()
 		self.image = pygame.transform.scale(self.image,(self.picwidth,self.picwidth))
+		self.bloodfont = pygame.font.SysFont('Comic Sans MS', 20)
+		self._blood_surf = self.bloodfont.render("Hp:"+str(self.blood), False, (0, 0, 0))
 
 	def update(self):
 
@@ -271,7 +273,7 @@ class Player(object):
 		if self.y < 0:
 			self.y = 0
 		# update score and blood
-		self.BSVar.set('blood:'+str(self.blood) + '/score:'+str(self.score))
+		self.BSVar.set('HP:'+str(self.blood) + '/score:'+str(self.score))
 
 	def moveRight(self):
 		self.direction = 0
@@ -288,6 +290,7 @@ class Player(object):
 	def draw(self, surface):
 		#print(self.x,self.y)
 		surface.blit(self.image,(self.x,self.y))
+		surface.blit(self._blood_surf, (self.x-7, self.y-10))
 
 
 	def SetCarHigh(self):

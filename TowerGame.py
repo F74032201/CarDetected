@@ -82,7 +82,8 @@ class App:
 		self._GG = None
 		self._display_surf = None
 		self._image_surf = None
-		self._text_surf = None
+		self._time_surf = None
+		self._score_surf = None
 		self.block_size = Con.block_size
 		self.GameHeigh = Con.border_H * Con.block_size
 		self.GameWidth = Con.border_W * Con.block_size
@@ -91,7 +92,7 @@ class App:
 		self.windowWidth = self.GameWidth
 		self.open_base_time = -1
 		self.count_down_final = False # use to record the base to open
-		self.Base = {'A':(7,7),'B':(1,1)} # Set Base for A,B. 
+		self.Base = {'A':(1,1),'B':(7,7)} # Set Base for A,B. 
 		self.turret = {'A':[(7,3),(7,4),(6,4),(6,5),(5,5),(5,6),(4,6),(4,7),(3,7),(2,7)]\
 					  ,'B':[(1,4),(1,5),(2,3),(2,4),(3,2),(3,3),(4,1),(4,2),(5,1),(6,1)]\
 					  ,'C':[(7,1),(7,2),(6,2),(6,3),(5,2),(5,3),(5,4),(4,3),(4,4),(4,5) \
@@ -110,19 +111,23 @@ class App:
 		pygame.display.set_caption('Tower War (esc to quit)')
 
 		pygame.font.init() # you have to call this at the start, if you want to use this module.
+		self.timefont = pygame.font.SysFont('Comic Sans MS', 30)
 		self.scorefont = pygame.font.SysFont('Comic Sans MS', 30)
 
 		self.bg_image = pygame.image.load('img/finalmap.png').convert()
 		self.bg_image = pygame.transform.scale(self.bg_image,(self.GameWidth,self.GameHeigh))
+		self.score_image = pygame.image.load('img/tower.png').convert()
+		self.score_image = pygame.transform.scale(self.score_image,(25, 25))
+		ChangeColor(self.score_image, [0, 255, 255])
 		self.start_ticks = pygame.time.get_ticks()
-		self.count_down = 180 # count down for 3 mins
+		self.count_down = 300 # count down for 3 mins
 		self.passed_sec = int((pygame.time.get_ticks() - self.start_ticks)/1000) # milliseconds to seconds
 		self.game_time_sec = self.count_down - self.passed_sec # left sec
 		self.game_time_sec10 = int(self.game_time_sec/10)
 		self.game_time_sec = int(self.game_time_sec%10)
 		self.game_time_min = int(self.game_time_sec10/6)
 		self.game_time_sec10 = int(self.game_time_sec10%6)
-		self._text_surf = self.scorefont.render("Remaining Time : "+str(self.game_time_min)+": "+str(self.game_time_sec10)\
+		self._time_surf = self.timefont.render("Remaining Time : "+str(self.game_time_min)+": "+str(self.game_time_sec10)\
 		+str(self.game_time_sec), False, (255, 255, 255))
 		
 		for i in list(self.Con.player):
@@ -130,6 +135,7 @@ class App:
 				self.Con.player[i].blood = 180
 				self.Con.player[i].score = 0
 				self.Con.player[i].still_alive = True
+
 		self.Con.towers_pos = [(-1,-1),(-1,-1),(-1,-1)]
 		self.Con.base_situation = {'A':'C', 'B':'C'}
 
@@ -139,7 +145,7 @@ class App:
 		# self.player[1].x = self.player[1].map_width-self.player[1].picwidth
 		# self.player[1].y = self.player[1].map_height-self.player[1].picwidth
 		
-		# self._text_surf = self.scorefont.render("Score : Team_A : "+str(self.teamA_point)+"    Team_B : "+str(self.teamB_point), False, (255, 255, 255))
+		# self._time_surf = self.timefont.render("Score : Team_A : "+str(self.teamA_point)+"    Team_B : "+str(self.teamB_point), False, (255, 255, 255))
 		self.Tower_init()
 
 		for i in list(self.Con.player):		
@@ -165,13 +171,13 @@ class App:
 		self.game_time_sec = int(self.game_time_sec%10)
 		self.game_time_min = int(self.game_time_sec10/6)
 		self.game_time_sec10 = int(self.game_time_sec10%6)
-		self._text_surf = self.scorefont.render("Remaining Time : "+str(self.game_time_min)+": "+str(self.game_time_sec10)\
+		self._time_surf = self.timefont.render("Remaining Time : "+str(self.game_time_min)+": "+str(self.game_time_sec10)\
 		+str(self.game_time_sec), False, (255, 255, 255))
 		# Setting sending text into connection object.
-		if self.tower['A']:
-			self.Con.towers_pos = [(int(self.tower['A'].x + self.block_size/4), int(self.tower['A'].y + self.block_size/4))\
-				, (int(self.tower['B'].x + self.block_size/4), int(self.tower['B'].y + self.block_size/4))\
-				, (int(self.tower['C'].x + self.block_size/4), int(self.tower['C'].y + self.block_size/4))]
+		# if self.tower['A']:
+		# 	self.Con.towers_pos = [(int(self.tower['A'].x + self.block_size/4), int(self.tower['A'].y + self.block_size/4))\
+		# 		, (int(self.tower['B'].x + self.block_size/4), int(self.tower['B'].y + self.block_size/4))\
+		# 		, (int(self.tower['C'].x + self.block_size/4), int(self.tower['C'].y + self.block_size/4))]
 
 		self.blood_control()	# Change blood in any situation.
 		self.isGG()		# Check whether the game is over.
@@ -203,34 +209,20 @@ class App:
 							if self.game.isCollision(self.tower[j].x,self.tower[j].y,self.Con.player[i].x,self.Con.player[i].y,32):
 								# if self.tower[j].id == self.Con.player[i].id and (not self.tower[j].done):
 								# if collision then get score and reset the turret
-								if j == 'A_Base' and self.Con.player[i].team == 'A': # Got the base and team A won the game
-									self._GG = 'A'
+								if j == self.Con.player[i].team+'_Base': # Got the base and won the game
+									if self.Con.player[i].team == 'A':
+										self._GG = 'B Won!'
+									elif self.Con.player[i].team == 'B':
+										self._GG = 'A Won!'
 									self._running = False
 									return
-								elif j == 'B_Base' and self.Con.player[i].team == 'B': # Got the base and team B won the game
-									self._GG = 'B'
-									self._running = False
-									return
-								elif j == 'C': # step into neutral zone
+								elif j == 'A' or j == 'B' or j == 'C': # step into neutral zone
 									self.Con.player[i].score += 1
-									self.tower[j] = self.rand_create_tower(j, self.tower[j].xy)
+									self.tower[j].x, self.tower[j].y = self.turret[j][self.rand_create_tower(j, self.tower[j].xy)]
+									self.tower[j].x = self.tower[j].x * self.block_size + self.block_size/4
+									self.tower[j].y = self.tower[j].y * self.block_size + self.block_size/4
 									self.add_team_blood(self.Con.player[i].team, 5)
-								elif j == 'A' and self.Con.player[i].team == 'A': # A step into A zone.
-									self.Con.player[i].score += 1
-									self.tower[j] =self.rand_create_tower(j, self.tower[j].xy)
-									self.add_team_blood(self.Con.player[i].team, 5)
-								elif j == 'A' and self.Con.player[i].team == 'B': # B step int A zone.
-									self.Con.player[i].score += 1
-									self.tower[j] = self.rand_create_tower(j, self.tower[j].xy)
-									self.add_team_blood(self.Con.player[i].team, 5)
-								elif j == 'B' and self.Con.player[i].team == 'B': # B step into B zone.
-									self.Con.player[i].score += 1
-									self.tower[j] = self.rand_create_tower(j, self.tower[j].xy)
-									self.add_team_blood(self.Con.player[i].team, 5)
-								elif j == 'B' and self.Con.player[i].team == 'A': # A step int B zone.
-									self.Con.player[i].score += 1
-									self.tower[j] = self.rand_create_tower(j, self.tower[j].xy)
-									self.add_team_blood(self.Con.player[i].team, 5)
+
 		# If game is not over, check who is out of blood.
 		for i in list(self.Con.player):
 			if type(self.Con.player[i]) != type('a') and \
@@ -238,7 +230,7 @@ class App:
 				self.Con.player[i].blood = 0
 				self.Con.ser_send_data(i, "UDie")
 				self.Con.player[i].still_alive = False		
-				self.Con.player[i].BSVar.set('blood:'+str(self.Con.player[i].blood) \
+				self.Con.player[i].BSVar.set('HP:'+str(self.Con.player[i].blood) \
 						+ '/score:'+str(self.Con.player[i].score))	
 		if self.is_nobody_alive('A'):
 			self._GG = 'B_Won!'
@@ -264,6 +256,7 @@ class App:
 				elif self.passed_sec - self.Con.player[i].stay_time > 3:
 					self.Con.player[i].blood -= 10
 					self.Con.player[i].stay_time = self.passed_sec
+				self.Con.player[i]._blood_surf = self.Con.player[i].bloodfont.render("Hp:"+str(self.Con.player[i].blood), False, (0, 0, 0))
 		# if nobody alive game over.
 		self._running = False
 		for i in list(self.Con.player):		
@@ -338,7 +331,8 @@ class App:
 			rand_num = random.randint(0,16)
 			while rand_num == self.turret[region].index(last_pos):
 				rand_num = random.randint(0,16)
-		return Tower(self.turret[region][rand_num],self.block_size,'img/tower.png')
+		return rand_num
+		# Tower(self.turret[region][rand_num],self.block_size,'img/tower.png')
 
 	def add_team_blood(self, team, amount):
 		# Add blood to every player.
@@ -360,20 +354,19 @@ class App:
 		# if open last for 10 sec.
 		self.open_base_time = self.passed_sec
 		# Open the base that the team can occupy.
-		if team == 'A' and not self.tower['A_Base']:
-			self.tower['A_Base'] = Tower((7,7),self.block_size,'img/base.png')
-		elif team == 'B'and not self.tower['B_Base']:
-			self.tower['B_Base'] = Tower((1,1),self.block_size,'img/base.png')
+		if not self.tower[team+'_Base']:
+			self.tower[team+'_Base'] = Tower(self.Base[team],self.block_size,'img/base.png')
 
 		# Clear all the tower.
-		self.tower['A'] = None
-		self.tower['B'] = None 
-		self.tower['C'] = None
+		del self.tower['A']
+		del self.tower['B'] 
+		del self.tower['C']
 
 	def close_base(self,team):
 		self.Con.base_situation[team] = 'C'
 			
 		self.open_base_time = -1
+		del self.tower[team+'_Base']
 		self.tower[team+'_Base'] = None
 		
 		# Reset all the towers.
@@ -405,7 +398,13 @@ class App:
 			if type(self.Con.player[i]) != type('a') and \
 				self.Con.player[i].still_alive:
 				self.Con.player[i].draw(self._display_surf)
-		self._display_surf.blit(self._text_surf,(0,self.GameHeigh))
+		self._display_surf.blit(self._time_surf,(0,self.GameHeigh))
+		self._score_surf = self.scorefont.render("A:                    B:", False, (255, 255, 255))
+		self._display_surf.blit(self._score_surf,(self.GameWidth/2, self.GameHeigh))
+		for i in range(0,self.sum_of_teams('A')):
+			self._display_surf.blit(self.score_image,(self.GameWidth/2 + (i+1)*30, self.GameHeigh))
+		for i in range(0,self.sum_of_teams('B')):
+			self._display_surf.blit(self.score_image,(self.GameWidth/2 + 140 + (i+1)*30, self.GameHeigh))
 		pygame.display.flip()
 
 	def on_cleanup(self):
