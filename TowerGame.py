@@ -158,11 +158,12 @@ class App:
 		self.tower['A'] = Tower(self.turret['A'][random.randint(0,9)],self.block_size,'img/tower.png')
 		self.tower['B'] = Tower(self.turret['B'][random.randint(0,9)],self.block_size,'img/tower.png')
 		self.tower['C'] = Tower(self.turret['C'][random.randint(0,16)],self.block_size,'img/tower.png')
-		
+		return
 
 	def on_event(self, event):
 		if event.type == QUIT:
 			self._running = False
+		return
 
 	def on_loop(self):
 		self.passed_sec = int((pygame.time.get_ticks() - self.start_ticks)/1000) # milliseconds to seconds
@@ -174,15 +175,18 @@ class App:
 		self._time_surf = self.timefont.render("Remaining Time : "+str(self.game_time_min)+": "+str(self.game_time_sec10)\
 		+str(self.game_time_sec), False, (255, 255, 255))
 		# Setting sending text into connection object.
-		# if self.tower['A']:
-		# 	self.Con.towers_pos = [(int(self.tower['A'].x + self.block_size/4), int(self.tower['A'].y + self.block_size/4))\
-		# 		, (int(self.tower['B'].x + self.block_size/4), int(self.tower['B'].y + self.block_size/4))\
-		# 		, (int(self.tower['C'].x + self.block_size/4), int(self.tower['C'].y + self.block_size/4))]
+		if 'A' in self.tower:
+			self.Con.towers_pos = [(int(self.tower['A'].x + self.block_size/4), int(self.tower['A'].y + self.block_size/4))\
+				, (int(self.tower['B'].x + self.block_size/4), int(self.tower['B'].y + self.block_size/4))\
+				, (int(self.tower['C'].x + self.block_size/4), int(self.tower['C'].y + self.block_size/4))]
+		else:
+			self.Con.towers_pos = [(-1,-1),(-1,-1),(-1,-1)]
 
 		self.blood_control()	# Change blood in any situation.
 		self.isGG()		# Check whether the game is over.
 		self.is_open_base()	# Check whether the bases shoud be opened or not, if so then open it, or close it.
 		self.is_defend()
+		return
 
 	def isGG(self):
 		if self.count_down - self.passed_sec <= 0: # Time's up
@@ -207,7 +211,6 @@ class App:
 					for j in list(self.tower):
 						if self.tower[j]:
 							if self.game.isCollision(self.tower[j].x,self.tower[j].y,self.Con.player[i].x,self.Con.player[i].y,32):
-								# if self.tower[j].id == self.Con.player[i].id and (not self.tower[j].done):
 								# if collision then get score and reset the turret
 								if j == self.Con.player[i].team+'_Base': # Got the base and won the game
 									if self.Con.player[i].team == 'A':
@@ -222,22 +225,7 @@ class App:
 									self.tower[j].x = self.tower[j].x * self.block_size + self.block_size/4
 									self.tower[j].y = self.tower[j].y * self.block_size + self.block_size/4
 									self.add_team_blood(self.Con.player[i].team, 5)
-								# elif j == 'A' and self.Con.player[i].team == 'A': # A step into A zone.
-								# 	self.Con.player[i].score += 1
-								# 	self.tower[j] =self.rand_create_tower(j, self.tower[j].xy)
-								# 	self.add_team_blood(self.Con.player[i].team, 5)
-								# elif j == 'A' and self.Con.player[i].team == 'B': # B step int A zone.
-								# 	self.Con.player[i].score += 1
-								# 	self.tower[j] = self.rand_create_tower(j, self.tower[j].xy)
-								# 	self.add_team_blood(self.Con.player[i].team, 5)
-								# elif j == 'B' and self.Con.player[i].team == 'B': # B step into B zone.
-								# 	self.Con.player[i].score += 1
-								# 	self.tower[j] = self.rand_create_tower(j, self.tower[j].xy)
-								# 	self.add_team_blood(self.Con.player[i].team, 5)
-								# elif j == 'B' and self.Con.player[i].team == 'A': # A step int B zone.
-								# 	self.Con.player[i].score += 1
-								# 	self.tower[j] = self.rand_create_tower(j, self.tower[j].xy)
-								# 	self.add_team_blood(self.Con.player[i].team, 5)
+								
 		# If game is not over, check who is out of blood.
 		for i in list(self.Con.player):
 			if type(self.Con.player[i]) != type('a') and \
@@ -269,7 +257,7 @@ class App:
 					self.Con.player[i].stay_time = self.passed_sec
 					self.Con.player[i].stay_pos = self.Con.player[i].big_pos()
 				elif self.passed_sec - self.Con.player[i].stay_time > 3:
-					self.Con.player[i].blood -= 1
+					self.Con.player[i].blood -= 10
 					self.Con.player[i].stay_time = self.passed_sec
 				self.Con.player[i]._blood_surf = self.Con.player[i].bloodfont.render("Hp:"+str(self.Con.player[i].blood), False, (0, 0, 0))
 		# if nobody alive game over.
@@ -306,6 +294,7 @@ class App:
 			self.close_base('B')
 			# Add blood to every player.
 			self.add_team_blood('B', 5)
+		return
 
 	def is_open_base(self):
 		# check the base condition and change it
@@ -328,6 +317,7 @@ class App:
 		elif self.passed_sec - self.open_base_time > 10 and not self.count_down_final:	# 10s
 			self.close_base('A')
 			self.close_base('B')
+		return
 
 	def is_nobody_alive(self, team):
 		for i in list(self.Con.player):
@@ -376,6 +366,7 @@ class App:
 		del self.tower['A']
 		del self.tower['B'] 
 		del self.tower['C']
+		return
 
 	def close_base(self,team):
 		self.Con.base_situation[team] = 'C'
@@ -388,6 +379,7 @@ class App:
 		self.tower['A'] = Tower(self.turret['A'][random.randint(0,9)],self.block_size,'img/tower.png')
 		self.tower['B'] = Tower(self.turret['B'][random.randint(0,9)],self.block_size,'img/tower.png')
 		self.tower['C'] = Tower(self.turret['C'][random.randint(0,16)],self.block_size,'img/tower.png')
+		return
 
 	def sum_of_teams(self,team):
 		Sum = 0 # temp sum to calculate total score
@@ -417,10 +409,11 @@ class App:
 		self._score_surf = self.scorefont.render("A:                    B:", False, (255, 255, 255))
 		self._display_surf.blit(self._score_surf,(self.GameWidth/2, self.GameHeigh))
 		for i in range(0,self.sum_of_teams('A')):
-			self._display_surf.blit(self.score_image,(self.GameWidth/2 + (i+1)*27.5, self.GameHeigh))
+			self._display_surf.blit(self.score_image,(self.GameWidth/2 + (i+1)*30, self.GameHeigh))
 		for i in range(0,self.sum_of_teams('B')):
-			self._display_surf.blit(self.score_image,(self.GameWidth/2 + 140 + (i+1)*27.5, self.GameHeigh))
+			self._display_surf.blit(self.score_image,(self.GameWidth/2 + 140 + (i+1)*30, self.GameHeigh))
 		pygame.display.flip()
+		return
 
 	def on_cleanup(self):
 		pygame.quit()
@@ -443,6 +436,7 @@ class App:
 			print_mes = print_mes + ("\n剩餘時間: %d分 %d%d秒" \
 				%(self.game_time_min,self.game_time_sec10,self.game_time_sec))
 			messagebox.showinfo(self._GG,print_mes)
+		return
 		
 
 	def on_execute(self):
@@ -458,4 +452,4 @@ class App:
 				print("esc")
 				self._running = False
 		self.on_cleanup()
-
+		return
