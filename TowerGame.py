@@ -226,7 +226,7 @@ class App:
 									self.tower[j].x = self.tower[j].x * self.block_size + self.block_size/4
 									self.tower[j].y = self.tower[j].y * self.block_size + self.block_size/4
 									self.add_team_blood(self.Con.player[i].team, 5)
-								
+
 		# If game is not over, check who is out of blood.
 		for i in list(self.Con.player):
 			if type(self.Con.player[i]) != type('a') and \
