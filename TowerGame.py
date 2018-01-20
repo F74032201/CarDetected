@@ -212,11 +212,12 @@ class App:
 						if self.tower[j]:
 							if self.game.isCollision(self.tower[j].x,self.tower[j].y,self.Con.player[i].x,self.Con.player[i].y,32):
 								# if collision then get score and reset the turret
-								if j == self.Con.player[i].team+'_Base': # Got the base and won the game
-									if self.Con.player[i].team == 'A':
-										self._GG = 'B Won!'
-									elif self.Con.player[i].team == 'B':
-										self._GG = 'A Won!'
+								if j == 'A_Base' and self.Con.player[i].team == 'B' : # Got the base and won the game
+									self._GG = 'B Won!'
+									self._running = False
+									return
+								elif j == 'B_Base'and self.Con.player[i].team == 'A':
+									self._GG = 'A Won!'
 									self._running = False
 									return
 								elif j == 'A' or j == 'B' or j == 'C': # step into neutral zone
