@@ -209,10 +209,12 @@ def DisplayCar():
 			break
 
 def GameRestart(Con,chatbox):
+	print("restart1")
 	gamethread = GameThread(Con)
 	gamethread.start()
 	Con.game_start = True
 
+	print("restart ok")
 	#send start to everyone
 	for idx in list(Con.player):
 		if type(Con.player[idx]) != type('a'):

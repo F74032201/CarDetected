@@ -449,6 +449,8 @@ class App:
 			print_mes = print_mes + ("\n剩餘時間: %d分 %d%d秒" \
 				%(self.game_time_min,self.game_time_sec10,self.game_time_sec))
 			messagebox.showinfo(self._GG,print_mes)
+
+			self.Con.game_start = False
 		return
 		
 
