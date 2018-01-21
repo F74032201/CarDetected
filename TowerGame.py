@@ -212,11 +212,13 @@ class App:
 						if self.tower[j]:
 							if self.game.isCollision(self.tower[j].x,self.tower[j].y,self.Con.player[i].x,self.Con.player[i].y,32):
 								# if collision then get score and reset the turret
-								if j == 'A_Base' and self.Con.player[i].team == 'B' : # Got the base and won the game
+								if j == 'A_Base' and self.Con.player[i].team == 'B' and \
+									self.passed_sec - self.Con.player[i].stay_time > 2: # Got the base and won the game
 									self._GG = 'B Won!'
 									self._running = False
 									return
-								elif j == 'B_Base'and self.Con.player[i].team == 'A':
+								elif j == 'B_Base'and self.Con.player[i].team == 'A' \
+									self.passed_sec - self.Con.player[i].stay_time > 2:
 									self._GG = 'A Won!'
 									self._running = False
 									return
@@ -272,29 +274,34 @@ class App:
 
 	def is_defend(self):
 		# one of base is opened.(not in last 10 secs) 
+		defend_count = 0
 		if self.Con.base_situation['A'] == 'O' and self.Con.base_situation['B'] == 'C':
 			# Check every player of team A is in the defend region or not.
 			for i in list(self.Con.player):
 				if type(self.Con.player[i]) != type('a') and \
 					self.Con.player[i].still_alive and self.Con.player[i].team == 'A':
-					if self.Con.player[i].big_pos() not in self.defend_region['A']:
-						return
-			# Successive defend
-			self.close_base('A')
-			# Add blood to every player.
-			self.add_team_blood('A', 5)
+					if self.Con.player[i].big_pos() in self.defend_region['A']:
+						defend_count = defend_count + 1
+						
+			if defend_count >= 2:
+				# Successive defend
+				self.close_base('A')
+				# Add blood to every player.
+				self.add_team_blood('A', 5)
 
 		elif self.Con.base_situation['B'] == 'O' and self.Con.base_situation['A'] == 'C':
 			# Check every player of team B is in the defend region or not.
 			for i in list(self.Con.player):
 				if type(self.Con.player[i]) != type('a') and \
 					self.Con.player[i].still_alive and self.Con.player[i].team == 'B':
-					if self.Con.player[i].big_pos() not in self.defend_region['B']:
-						return
-			# Successive defend
-			self.close_base('B')
-			# Add blood to every player.
-			self.add_team_blood('B', 5)
+					if self.Con.player[i].big_pos() in self.defend_region['B']:
+						defend_count = defend_count + 1
+						
+			if defend_count >= 2:
+				# Successive defend
+				self.close_base('B')
+				# Add blood to every player.
+				self.add_team_blood('B', 5)
 		return
 
 	def is_open_base(self):
