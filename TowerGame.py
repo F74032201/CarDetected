@@ -222,7 +222,7 @@ class App:
 									return
 								elif j == 'A' or j == 'B' or j == 'C': # step into neutral zone
 									self.Con.player[i].score += 1
-									self.tower[j].x, self.tower[j].y = self.turret[j][self.rand_create_tower(j, self.tower[j].xy)]
+									self.tower[j].x, self.tower[j].y = self.rand_create_tower(j)
 									self.tower[j].x = self.tower[j].x * self.block_size + self.block_size/4
 									self.tower[j].y = self.tower[j].y * self.block_size + self.block_size/4
 									self.add_team_blood(self.Con.player[i].team, 5)
@@ -327,17 +327,29 @@ class App:
 					return False
 		return True
 
-	def rand_create_tower(self, region, last_pos):
+	def rand_create_tower(self, region):
 		"""Create a tower on a random position and being different from last one."""
-		if region == 'A' or region == 'B':
-			rand_num = random.randint(0,9)
-			while rand_num == self.turret[region].index(last_pos):
-				rand_num = random.randint(0,9)
-		elif region == 'C':
-			rand_num = random.randint(0,16)
-			while rand_num == self.turret[region].index(last_pos):
-				rand_num = random.randint(0,16)
-		return rand_num
+		towers = self.tower[region]
+		for i in list(self.Con.player):
+			if type(self.Con.player[i]) != type('a') and \
+				self.Con.player[i].still_alive and self.Con.player[i].team == team:
+				if self.Con.player[i].big_pos() in towers:
+					towers.remove(self.Con.player[i].big_pos())
+
+		rand_num = random.randint(0,len(towers)-1)
+
+		return towers[rand_num]
+
+
+		# if region == 'A' or region == 'B':
+		# 	rand_num = random.randint(0,9)
+		# 	while rand_num == self.turret[region].index(last_pos):
+		# 		rand_num = random.randint(0,9)
+		# elif region == 'C':
+		# 	rand_num = random.randint(0,16)
+		# 	while rand_num == self.turret[region].index(last_pos):
+		# 		rand_num = random.randint(0,16)
+		# return rand_num
 		# Tower(self.turret[region][rand_num],self.block_size,'img/tower.png')
 
 	def add_team_blood(self, team, amount):
