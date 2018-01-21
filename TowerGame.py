@@ -217,7 +217,7 @@ class App:
 									self._GG = 'B Won!'
 									self._running = False
 									return
-								elif j == 'B_Base'and self.Con.player[i].team == 'A' \
+								elif j == 'B_Base'and self.Con.player[i].team == 'A' and\
 									self.passed_sec - self.Con.player[i].stay_time > 2:
 									self._GG = 'A Won!'
 									self._running = False
