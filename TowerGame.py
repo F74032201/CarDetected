@@ -329,10 +329,10 @@ class App:
 
 	def rand_create_tower(self, region):
 		"""Create a tower on a random position and being different from last one."""
-		towers = self.tower[region]
+		towers = list(self.turret[region])
 		for i in list(self.Con.player):
 			if type(self.Con.player[i]) != type('a') and \
-				self.Con.player[i].still_alive and self.Con.player[i].team == team:
+				self.Con.player[i].still_alive:
 				if self.Con.player[i].big_pos() in towers:
 					towers.remove(self.Con.player[i].big_pos())
 
