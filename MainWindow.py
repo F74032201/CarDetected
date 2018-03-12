@@ -13,7 +13,15 @@ start_count = 0
 
 
 class myThread(Thread):
-	"""docstring for myThread"""
+	"""
+	Thread for waiting connecting
+	
+	Args:
+		Con: connection object created with class ServerConnection
+
+	When clicking the "start" button in UI,The connection socket will open,
+	and it can revert when clicking again.
+	"""
 	def __init__(self, con):
 		Thread.__init__(self)
 		self.con = con
@@ -23,14 +31,21 @@ class myThread(Thread):
 		self.con.WaitingConnection()
 
 	def stop(self):
+		"""Resume the connecting socket"""
 		print("Stop connection loop")
 		self._stop_event.set()
 
 	def stopped(self):
 		return self._stop_event.is_set()
 
-#Thread for updating the maze
 class myThreadTransform(Thread):
+	"""
+	Thread for updating the maze continually
+	
+	Args:
+		UP: object of class TransformMaze, used to calculate and transform upside four points of map
+		DP: object of class TransformMaze, used to calculate and transform downside four points of map
+	"""
 	def __init__(self, UP, DP):
 		Thread.__init__(self)
 		self.UP = UP
@@ -53,6 +68,12 @@ class myThreadTransform(Thread):
 
 
 class myThreadFrame(Thread):
+	"""
+	Thread for reading frame of camera
+	
+	Args:
+		cap: object of class VideoCapture
+	"""
 	def __init__(self, cap):
 		Thread.__init__(self)
 		self.cap = cap
@@ -62,27 +83,32 @@ class myThreadFrame(Thread):
 	def run(self):
 		while True:
 			ret, Frame = self.cap.read()
-
 			self.frame = cv2.resize(Frame,None,fx=1, fy=1, interpolation = cv2.INTER_CUBIC)
 			if ret == False:
 				break
 
 
 class GameThread(Thread):
+	"""
+	Thread for execute the game
+	
+	Execute function in TowerGame, until game over or quit.
+	"""
 	def __init__(self, Con):
 		super(GameThread, self).__init__()
 		self.Con = Con
 		self.App = App(self.Con)
 		
 	def run(self):
+		""""""
 		for idx in list(self.Con.player):
 			if type(self.Con.player[idx]) != type('a'):
 				self.Con.player[idx].game_init()
-				ChangeColor(self.Con.player[idx].image,self.Con.player[idx].Color)
+				ChangeColor(self.Con.player[idx].image, self.Con.player[idx].Color)
 		self.App.on_execute()
 
 class MazeColorThread(Thread):
-	"""Thread for picking maze color."""
+	"""Thread for refreshing maze color."""
 	def __init__(self, UP,DP):
 		Thread.__init__(self)
 		self.UP = UP
@@ -103,15 +129,14 @@ class RefreahPointsThread(MazeColorThread):
 		while 1:
 			cv2.imshow('UP (w to quit)',self.UP.Result)
 			cv2.imshow('DP (w to quit)',self.DP.Result)
-
+			# click 'w' to quit the window, and use wait keys to keep from crashing
 			if cv2.waitKey(1) & 0xFF == ord('w'):
 				cv2.destroyWindow("UP (w to quit)")	
 				cv2.waitKey(1)
 				cv2.waitKey(1)
 				cv2.waitKey(1)
 				cv2.waitKey(1)
-				cv2.destroyWindow("DP (w to quit)")
-				
+				cv2.destroyWindow("DP (w to quit)")				
 				cv2.waitKey(1)
 				cv2.waitKey(1)
 				cv2.waitKey(1)
@@ -119,20 +144,26 @@ class RefreahPointsThread(MazeColorThread):
 				break
 
 def Exit(r):
-	os._exit(1)
-	r.destroy()
+	"""
+	This is the function for terminating program
 	
+	Args:
+		r: window object of TK
+	"""
+	os._exit(1)
+	r.destroy()	
 		
 def convert():
-	global start_count,ConThread,Con
+	"""Once clicking to convert with start and close"""
+	global start_count, ConThread, Con
 	if start_count%2:
 		btn_text.set("Start Server")
 
-		#delete Connection obj
+		# Delete Connection obj
 		for x in Con.player:
 			if type(Con.player[x]) != type('a'):
 				Con.player[x].delete()
-		Con.player = {Con.server_socket:"Master"}
+		Con.player = {Con.server_socket:"Master"}		# Create master player for server socket
 		ConThread.stop()
 		
 	else:
@@ -143,16 +174,26 @@ def convert():
 	start_count=start_count+1
 
 def kick(Con):
+	"""
+	function for getting rid of specific player
+	
+	Args:
+		Con: connection object created with class ServerConnection
+	"""
 	for idx in list(Con.player):
 		if type(Con.player[idx]) != type('a'):
 			if Con.player[idx].CheckVar.get():
-				# Con.player[idx].Connected = False
-				# Con.player[idx].delete()
-				# del Con.player[idx]
-		
 				Con.DELETE(idx)
 				
 def transmit(Con,mes,chatbox):
+	"""
+	Send text to specific player
+	
+	Args: 
+		Con: connection object created with class ServerConnection
+		mes: text in the text box of main window
+		chatbox: object of terminal of main window, used to dispkay message between players and server
+	"""
 	tmp_message = mes.get()
 	for idx in list(Con.player):
 		if type(Con.player[idx]) != type('a'):
@@ -163,59 +204,70 @@ def transmit(Con,mes,chatbox):
 				chatbox.see(END)
 	
 def create_refresh4_thread(UP, DP):
+	"""
+	Function for creating updating points thread
+	
+	Args:
+		UP: object of class TransformMaze, used to calculate and transform upside four points of map
+		DP: object of class TransformMaze, used to calculate and transform downside four points of map
+	"""
 	refresh4_thread = RefreahPointsThread(UP, DP)
 	refresh4_thread.start()
 	print("refresh points")
 
 def create_mazecolor_thread(UP, DP):
+	"""
+	Function for creating refreshing colors thread
+	
+	Args:
+		UP: object of class TransformMaze, used to calculate and transform upside four points of map
+		DP: object of class TransformMaze, used to calculate and transform downside four points of map
+	"""
 	mazecolor_thread = MazeColorThread(UP,DP)
 	mazecolor_thread.start()
 	print("refresh color")	
 
 def MazeColor(UP,DP):
+	"""
+	Function for refreshing four-points colors of map on the frame
+	
+	Args:
+		UP: object of class TransformMaze, used to calculate and transform upside four points of map
+		DP: object of class TransformMaze, used to calculate and transform downside four points of map
+	"""
 	UP.RefreshColor()
 	DP.RefreshColor()
 
 	print("refresh color")	
-	# DP.RefreshColor()
 
 def MazeUpdate(UP,DP,MazeUpdateBtn):
+	"""
+	Function for creating thread of transforming trapezoid into square 
+	
+	Args:
+		UP: object of class TransformMaze, used to calculate and transform upside four points of map
+		DP: object of class TransformMaze, used to calculate and transform downside four points of map
+		MazeUpdateBtn: buttun object to create thread for transforming
+	"""
 	TransformThread = myThreadTransform(UP,DP)
 	TransformThread.start()
 	MazeUpdateBtn.config(state = "disable")
 
-def DisplayCar():
-	global Con
-	cv2.namedWindow('Car Display')
-
-	while True:
-		mapp = cv2.imread("666.jpg")
-		for idx in list(Con.player):
-			if type(Con.player[idx]) != type('a'):
-				if Con.player[idx].CheckVar.get():
-					print(Con.player[idx].Color)
-					cv2.circle(mapp, Con.player[idx].pos, 5, Con.player[idx].Color, -1)
-		
-		cv2.imshow("Car Display",mapp)
-		print(Con.player[idx].pos)
-		print(Con.player[idx].Color)
-		
-		if cv2.waitKey(1) & 0xFF == ord('d'):
-			cv2.destroyWindow("Car Display")
-			cv2.waitKey(1)
-			cv2.waitKey(1)
-			cv2.waitKey(1)
-			cv2.waitKey(1)
-			break
-
 def GameRestart(Con,chatbox):
+	"""
+	Function triggered by clicking restart button to create or recreate a new game
+
+	Args:
+		Con: connection object created with class ServerConnection
+		chatbox: object of terminal of main window
+	"""
 	print("restart1")
 	gamethread = GameThread(Con)
 	gamethread.start()
 	Con.game_start = True
 
 	print("restart ok")
-	#send start to everyone
+	# send start to everyone
 	for idx in list(Con.player):
 		if type(Con.player[idx]) != type('a'):
 			Con.ser_send_data(idx,"Start")
@@ -223,45 +275,51 @@ def GameRestart(Con,chatbox):
 if __name__ == "__main__":
 	win = Tk()
 
-	#create camera obj
-	cap = cv2.VideoCapture(0)
+	cap = cv2.VideoCapture(0)		# create camera obj
 
+	# set camera view border
 	cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280);
 	cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720);
 
 	framethread = myThreadFrame(cap)
 	framethread.start()
+
 	UP = TransformMaze(framethread)
-	UP.Color = [36, 11, 185]
+	UP.Color = [36, 11, 185]		# default color of red
 	DP = TransformMaze(framethread)
-	DP.Color = [137, 76, 10]
+	DP.Color = [137, 76, 10]		# default color of blue
 	main_frame = Frame(win)
 	main_frame.pack()
 
-	#Font setting
-	helv36 = font.Font(family='Helvetica', size=18, weight=font.BOLD)
-	btn_text = StringVar()
-	#Top
+	helv36 = font.Font(family='Helvetica', size=18, weight=font.BOLD)		# Font setting
+	
+	btn_text = StringVar()		# button text variable
 	btn_text.set("Start Server")
-	StartServerBtn = Button(main_frame, textvariable= btn_text,command = convert,font = helv36)
+
+	# Click button to trigger function of connection available or not
+	StartServerBtn = Button(main_frame, textvariable= btn_text,command = convert, font = helv36)
 	StartServerBtn.pack(side = LEFT)
-	ExitBtn = Button(main_frame,text = "結束", command = lambda: Exit(win),font = helv36)
+	# Click button to exit the program
+	ExitBtn = Button(main_frame,text = "結束", command = lambda: Exit(win), font = helv36)
 	ExitBtn.pack(side = RIGHT)
-	MazeColorBtn = Button(main_frame,text = "設定四角顏色", command = lambda: create_mazecolor_thread(UP,DP),font = helv36)
+	# Click button to set upside and downside color of corners, use mouse to click the area of colors in the corner
+	MazeColorBtn = Button(main_frame, text = "設定四角顏色", command = lambda: create_mazecolor_thread(UP, DP), font = helv36)
 	MazeColorBtn.pack(side = LEFT)
-	Mbtn_text = StringVar()
+
+	Mbtn_text = StringVar()		# button text variable
 	Mbtn_text.set("開始校正")
-	MazeUpdateBtn = Button(main_frame,text = "開始校正", command = lambda: MazeUpdate(UP,DP,MazeUpdateBtn),font = helv36)
+	# Click button to start thread for transforming trapezoid into square
+	MazeUpdateBtn = Button(main_frame, text = "開始校正", command = lambda: MazeUpdate(UP, DP, MazeUpdateBtn), font = helv36)
 	MazeUpdateBtn.pack(side = LEFT)
 
-	main_frame_chat = LabelFrame(win ,bg = '#a3a8a7')
-	main_frame_chat.pack(fill='x',padx=10,pady=8)
-	chatbox = ScrolledText(main_frame_chat,height = 5)
-	chatbox.pack(padx=10,pady=8)
-	chatboxbt = Button(win , text = 'clear' ,command=lambda: chatbox.delete(1.0,END)).pack()
-
-	# printbt = Button(win , text = 'display' ,command=lambda: DisplayCar() ).pack()
-
+	# Set the frame of terminal
+	main_frame_chat = LabelFrame(win, bg = '#a3a8a7')
+	main_frame_chat.pack(fill='x', padx=10, pady=8)
+	# Create terminal object
+	chatbox = ScrolledText(main_frame_chat, height = 5)
+	chatbox.pack(padx=10, pady=8)
+	# Button for clearing terminal text 
+	chatboxbt = Button(win , text = 'clear', command=lambda: chatbox.delete(1.0, END)).pack()
 
 	main_frame_player = LabelFrame(win,text = "連線玩家",foreground = 'blue')
 	main_frame_player.pack(fill='x',padx=10,pady=2)
@@ -281,8 +339,8 @@ if __name__ == "__main__":
 	border_H = 9
 	border_W = 9
 	block_size = 64
-	#create connection obj
-	Con = ServerConnection(main_frame_player_teamA,main_frame_player_teamB, chatbox , UP, DP,border_H,border_W,block_size)
+	# create connection obj
+	Con = ServerConnection(main_frame_player_teamA,main_frame_player_teamB, chatbox , UP, DP, border_H, border_W, block_size)
 	Con.OpenServerSocket()
 
 	mes = StringVar()

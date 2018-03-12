@@ -5,47 +5,56 @@ import imutils
 from threading import Thread, Lock
 
 class TransformMaze(object):
+	"""
+	Class for transforming maze from trapezoid to square 
+
+	Args:
+		framethread: object of reading camera from class myThreadFrame
+	"""
 	def __init__(self,framethread):
 		self.framethread = framethread
 		self.Result = None
 		self.dst = None
 		self.Points = None
 		self.Color = [0,0,255]
-		self.lastpoint = None
-		self.TransformContinue = True
+		self.lastpoint = None	
 		self.width = 512
 		self.height = 512
+		self.Result_lock = Lock()		# Set a lock mechanism to prevent from race condition problem
 
-		self.Result_lock = Lock()
-
-	#for thread
 	def RefreshResult(self):
-		#Sorting points
-		self.Points.sort(key=itemgetter(1))
-		if int(self.Points[0][0])>int(self.Points[1][0]):
-			temp = self.Points.pop(0)
-			self.Points.insert(1,temp)
-		if int(self.Points[2][0])>int(self.Points[3][0]):
-			temp = self.Points.pop(2)
-			self.Points.insert(3,temp) 
+		"""
+		Use the four points found by color to generate a square resault
 
-		#Transform
+		Sort the points such that: first one at upper left, second one at upper right,
+		third one at lower left, fourth one at lower right.
+		Function warpPerspective will return the resault of correct one.
+		"""
+		self.Points.sort(key=itemgetter(1))
+		if int(self.Points[0][0]) > int(self.Points[1][0]):
+			temp = self.Points.pop(0)
+			self.Points.insert(1, temp)
+		if int(self.Points[2][0]) > int(self.Points[3][0]):
+			temp = self.Points.pop(2)
+			self.Points.insert(3, temp) 
+
 		pts1 = np.float32(self.Points)
-		pts2 = np.float32([[0,0],[self.width,0],[0,self.height],[self.width,self.height]])
-		M = cv2.getPerspectiveTransform(pts1,pts2)
+		pts2 = np.float32([[0, 0], [self.width, 0], [0, self.height], [self.width, self.height]])
+		M = cv2.getPerspectiveTransform(pts1, pts2)
 
 		self.framethread.frame_lock.acquire()
-		self.Result = cv2.warpPerspective(self.framethread.frame,M,(self.width,self.height)) 
+		self.Result = cv2.warpPerspective(self.framethread.frame, M, (self.width, self.height)) 
 		self.framethread.frame_lock.release()
 
 	def RefreshColor(self):
+		"""
+		Mouse click to select the right color, refreshing the points at the meantime.
+		"""
 		cv2.namedWindow('Set Color (q to quit)')
-		cv2.setMouseCallback('Set Color (q to quit)',self.on_mouse)
+		cv2.setMouseCallback('Set Color (q to quit)', self.on_mouse)
 		show_flag = True
 
 		while True:
-			# if ret == False:
-			# 	break
 			self.framethread.frame_lock.acquire()
 			self.dst = self.framethread.frame
 			self.framethread.frame_lock.release()
@@ -66,15 +75,23 @@ class TransformMaze(object):
 
 
 	def on_mouse(self,event,x,y,flags,param):
-		
+		"""
+		Set click event, and save the selected color in self.Color
+		"""
 		if event == cv2.EVENT_LBUTTONDOWN:
 			self.Color = [int(self.dst[y,x][0]),int(self.dst[y,x][1]),int(self.dst[y,x][2])]
 			print(self.Color)
 
 
 	def RefreshPoints(self):
-		#convert RGB to HSV
+		"""
+		Find points of selected color with several OpenCV function
 
+		Returns:
+			Lists of found points 
+
+		"""
+		#convert RGB to HSV
 		self.framethread.frame_lock.acquire()
 		hsv = cv2.cvtColor(self.framethread.frame, cv2.COLOR_BGR2HSV)
 		self.framethread.frame_lock.release()
@@ -83,13 +100,13 @@ class TransformMaze(object):
 
 		hue = hsv_color[0][0][0]
 
-		#sensitivity
+		# sensitivity
 		low = hue-10 if hue-10 > -1 else 0
 		high = hue+10 if hue+10 < 256 else 255
-		#set bound
+		# set bound
 		lower_range = np.array([low, 100, 100], dtype=np.uint8)
 		upper_range = np.array([high, 255, 255], dtype=np.uint8)
-		#make a mask
+		# make a mask
 		mask = cv2.inRange(hsv, lower_range, upper_range)
 		kernel = np.ones((5,5),np.uint8)
 

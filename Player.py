@@ -35,9 +35,12 @@ class Player(object):
 		#obj of transformed frame
 		self.UP = UP
 		self.DP = DP
-
 		self.root = root
 		self.name = name
+		self.border_H = border_H
+		self.border_W = border_W
+		self.block_size = block_size
+		
 		self.id = 0
 		self.done = False
 		self.blood = 180
@@ -50,9 +53,7 @@ class Player(object):
 		self.pos = (-1,-1)
 
 		self.BaseOpen = False
-		self.border_H = border_H
-		self.border_W = border_W
-		self.block_size = block_size
+		
 
 		self.x = 0
 		self.y = 0
