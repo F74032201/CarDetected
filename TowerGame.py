@@ -182,6 +182,13 @@ class App:
 		return
 
 	def isGG(self):
+		"""
+		To determine whether someone has won the game or time's up.
+		First to determine time is runnung out or not.
+		Second to determine whether someone has stepped into the specific region
+		to over the game or gain some scores.
+		Third to check is there anyone out of blood, then kill him.
+		"""
 		if self.count_down - self.passed_sec <= 0: # Time's up
 			self._running = False
 
@@ -241,6 +248,9 @@ class App:
 
 
 	def blood_control(self):
+		"""
+		Set the gaining or losing blood situation, and check if nobogy alive then game over.
+		"""
 		for i in list(self.Con.player):		
 			if type(self.Con.player[i]) != type('a') and self.Con.player[i].still_alive:
 				# minus 1 blood every sec.
@@ -266,6 +276,8 @@ class App:
 		return
 
 	def is_defend(self):
+		"""If the base is opened, the defender should go bak to the area the close the base."""
+		
 		# one of base is opened.(not in last 10 secs) 
 		defend_count = 0
 		if self.Con.base_situation['A'] == 'O' and self.Con.base_situation['B'] == 'C':
@@ -298,7 +310,12 @@ class App:
 		return
 
 	def is_open_base(self):
-		# check the base condition and change it
+		"""
+		check the base condition and change it.
+		If remaining time is less than 10 second then open both bases.
+		Else if any team get scores >= 3 then open the oppsite base.
+		If base has been opened for 10sec then close it.
+		"""
 		if self.count_down - self.passed_sec <= 10 and not self.count_down_final:
 			self.count_down_final = True
 			print('10')
@@ -321,6 +338,10 @@ class App:
 		return
 
 	def is_nobody_alive(self, team):
+		"""
+		Check all the players in the team are died or not.
+		All died the return true.
+		"""
 		for i in list(self.Con.player):
 			if type(self.Con.player[i]) != type('a') and self.Con.player[i].team == team:
 				if self.Con.player[i].still_alive:
@@ -328,7 +349,14 @@ class App:
 		return True
 
 	def rand_create_tower(self, region):
-		"""Create a tower on a random position and being different from last one."""
+		"""
+		Create a tower on a random position and being different from last one.
+		
+		Args:
+			region: one the region in neutral zone.
+		Returns:
+			towers[rand_num]: New tower position. 
+		"""
 		towers = list(self.turret[region])
 		for i in list(self.Con.player):
 			if type(self.Con.player[i]) != type('a') and \
@@ -340,20 +368,14 @@ class App:
 
 		return towers[rand_num]
 
-
-		# if region == 'A' or region == 'B':
-		# 	rand_num = random.randint(0,9)
-		# 	while rand_num == self.turret[region].index(last_pos):
-		# 		rand_num = random.randint(0,9)
-		# elif region == 'C':
-		# 	rand_num = random.randint(0,16)
-		# 	while rand_num == self.turret[region].index(last_pos):
-		# 		rand_num = random.randint(0,16)
-		# return rand_num
-		# Tower(self.turret[region][rand_num],self.block_size,'img/tower.png')
-
 	def add_team_blood(self, team, amount):
-		# Add blood to every player.
+		"""
+		Add blood to every player.
+		
+		Args:
+			team: The team will be add blood.
+			amount: The blood amount will be add.
+		"""
 		for i in list(self.Con.player):
 			if type(self.Con.player[i]) != type('a') and \
 				self.Con.player[i].still_alive and self.Con.player[i].team == team:
@@ -362,7 +384,7 @@ class App:
 
 
 	def open_base(self,team):
-
+		"""Open the base that can be occupied."""
 		self.Con.base_situation[team] = 'O'
 		# Log base open time
 		self.Con.chatbox.insert(INSERT, 'Base %s opened at: %d分 %d%d秒\n' \
@@ -382,6 +404,7 @@ class App:
 		return
 
 	def close_base(self,team):
+		"""Open the base that can be occupied."""
 		self.Con.base_situation[team] = 'C'
 			
 		self.open_base_time = -1
@@ -395,6 +418,7 @@ class App:
 		return
 
 	def sum_of_teams(self,team):
+		"""Sum up the scores of a team."""
 		Sum = 0 # temp sum to calculate total score
 		for idx in list(self.Con.player) :
 			if type(self.Con.player[idx]) != type('a') and self.Con.player[idx].team == team:
@@ -402,6 +426,7 @@ class App:
 		return Sum
 
 	def blood_of_teams(self,team):
+		"""Sum up the blood of a team."""
 		Sum = 0 # temp sum to calculate total score
 		for idx in list(self.Con.player) :
 			if type(self.Con.player[idx]) != type('a') and self.Con.player[idx].team == team:
