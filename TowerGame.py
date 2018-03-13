@@ -8,7 +8,15 @@ import os
 import random
 
 def ChangeColor(image,color):
+	"""
+	function for changing original image to the color is needed.
+	often use for car image that show on game surface.
+	it will pick pixel at (16, 16) for origin color of image.
 
+	Args:
+		image: input image
+		color: the color which we want for image
+	"""
 	w, h = image.get_size()
 	b, g, r = color
 	o_r, o_g, o_b, _ = image.get_at((16, 16))
@@ -23,8 +31,22 @@ def ChangeColor(image,color):
 	   
 
 class Game:
+	"""
+	Class that collect the game logic
+	"""
+
 	picwidth = 32
 	def isCollision(self,x1,y1,x2,y2,bsize):
+		"""
+		function for judging if two object is collision or not
+
+		Args:
+			x1: Object1's x coordinates
+			y1: Object1's y coordinates
+			x2: Object2's x coordinates
+			y2: Object2's y coordinates
+			bsize: Object's size
+		"""
 		
 		if x1 >= x2 and x1 <= x2+bsize:
 			if y1 >= y2 and y1 <= y2+bsize:
@@ -44,6 +66,16 @@ class Game:
 		
 
 class Tower:
+	"""
+	Class that record the information of tower.
+	Also use for base(or in other word, castle)
+	
+	Args:
+		xy: initial position of tower, format:(x, y)
+		block_size: width for a block of map, using to calculate real 
+					position of tower in the map
+		pic: directory of image of tower
+	"""
 	picwidth = 32
 	def __init__(self,xy,block_size,pic):
 		self.block_size = block_size
@@ -57,23 +89,20 @@ class Tower:
 		self.done = False
 
 	def draw(self, surface):
+		""" 
+		function to draw the tower on surface of game 
+		surface: surface of whole game
+		"""
 		surface.blit(self.image,(self.x , self.y ))
 
-class Wall:
-	x = 0
-	y = 0
-	def __init__(self,x,y):
-		self.x = x
-		self.y = y
-	def draw_v(self, surface):
-		# pygame.draw.circle(surface, [0, 0, 255], (self.x, self.y), 5, 0)
-		pygame.draw.rect(surface, [0, 0, 255], (self.x-2.5, self.y-32, 5, 64))
-	def draw_h(self, surface):
-		# pygame.draw.circle(surface, [0, 0, 255], (self.x, self.y), 5, 0)
-		pygame.draw.rect(surface, [0, 0, 255], (self.x-32, self.y-2.5, 64, 5))
-
-
 class App:	
+	"""
+	the main class of the whole game.
+	
+	Args:
+		Con: a object "ServerConnection", use to get the player information
+
+	"""
 	tower = {}
 
 	def __init__(self,Con):
@@ -106,19 +135,27 @@ class App:
 		
 
 	def on_init(self):
+		"""
+		Function that initial the object of game, call pygame init and do other movement
+		to initialize the whole game. 
+
+		"""
 		pygame.init()
 		self._display_surf = pygame.display.set_mode((self.windowWidth, self.windowHeigh), pygame.HWSURFACE)
 		pygame.display.set_caption('Tower War (esc to quit)')
 
-		pygame.font.init() # you have to call this at the start, if you want to use this module.
-		self.timefont = pygame.font.SysFont('Comic Sans MS', 30)
-		self.scorefont = pygame.font.SysFont('Comic Sans MS', 30)
+		pygame.font.init() # for using font, and we can draw the text on surface
+		self.timefont = pygame.font.SysFont('Comic Sans MS', 30) # for time display
+		self.scorefont = pygame.font.SysFont('Comic Sans MS', 30) # for score display
 
+		# load image and then change size and color
 		self.bg_image = pygame.image.load('img/finalmap.png').convert()
 		self.bg_image = pygame.transform.scale(self.bg_image,(self.GameWidth,self.GameHeigh))
 		self.score_image = pygame.image.load('img/tower.png').convert()
 		self.score_image = pygame.transform.scale(self.score_image,(25, 25))
 		ChangeColor(self.score_image, [0, 255, 255])
+
+		# set clock to get the time of game
 		self.start_ticks = pygame.time.get_ticks()
 		self.count_down = 300 # count down for 3 mins
 		self.passed_sec = int((pygame.time.get_ticks() - self.start_ticks)/1000) # milliseconds to seconds
@@ -127,9 +164,10 @@ class App:
 		self.game_time_sec = int(self.game_time_sec%10)
 		self.game_time_min = int(self.game_time_sec10/6)
 		self.game_time_sec10 = int(self.game_time_sec10%6)
-		self._time_surf = self.timefont.render("Remaining Time : "+str(self.game_time_min)+": "+str(self.game_time_sec10)\
-		+str(self.game_time_sec), False, (255, 255, 255))
+		self._time_surf = self.timefont.render("Remaining Time : "+str(self.game_time_min)+": "+\
+			str(self.game_time_sec10)+str(self.game_time_sec), False, (255, 255, 255)) # show time on surface
 		
+		# initial the player information
 		for i in list(self.Con.player):
 			if type(self.Con.player[i]) != type('a'):
 				self.Con.player[i].blood = 180
@@ -141,11 +179,11 @@ class App:
 
 		self.Tower_init()
 
+		# check if the player just stay at same place or not
 		for i in list(self.Con.player):		
 			if type(self.Con.player[i]) != type('a'):
 				self.Con.player[i].stay_pos = self.Con.player[i].big_pos()
 				self.Con.player[i].stay_time = self.passed_sec
-		# self.init_wall()
 
 	def Tower_init(self):
 		self.tower['A'] = Tower(self.turret['A'][random.randint(0,9)],self.block_size,'img/tower.png')
@@ -159,6 +197,10 @@ class App:
 		return
 
 	def on_loop(self):
+		"""
+		Main body of game. In calling of on_loop, we will check each condition, such as gameover or not, 
+		if any collision? control blood, refresh position of each object, etc.
+		"""
 		self.passed_sec = int((pygame.time.get_ticks() - self.start_ticks)/1000) # milliseconds to seconds
 		self.game_time_sec = self.count_down - self.passed_sec # left sec
 		self.game_time_sec10 = int(self.game_time_sec/10)
@@ -434,6 +476,9 @@ class App:
 		return Sum
 
 	def on_render(self):
+		"""
+		finction to to draw each object on surface 
+		"""
 		self._display_surf.fill((0,0,0))
 		self._display_surf.blit(self.bg_image,(0, 0))
 		for i in list(self.tower):
@@ -450,10 +495,14 @@ class App:
 			self._display_surf.blit(self.score_image,(self.GameWidth/2 + (i+1)*30, self.GameHeigh))
 		for i in range(0,self.sum_of_teams('B')):
 			self._display_surf.blit(self.score_image,(self.GameWidth/2 + 140 + (i+1)*30, self.GameHeigh))
-		pygame.display.flip()
+		pygame.display.flip() # use new surface to relace older one
 		return
 
 	def on_cleanup(self):
+		"""
+		function to show the result of the game, and retrieve the useless objects
+
+		"""
 		pygame.quit()
 		print("pygame.quit()")
 		if self._GG:
@@ -480,6 +529,10 @@ class App:
 		
 
 	def on_execute(self):
+		"""
+		function that control the game executing.
+
+		"""
 		while(self._running):
 			pygame.event.pump()
 			keys = pygame.key.get_pressed()
@@ -488,6 +541,7 @@ class App:
 			self.on_render()
 			
 			time.sleep(100.0 / 1000.0)
+			# press "esc" to end the game
 			if (keys[pygame.K_ESCAPE]):
 				print("esc")
 				self._running = False
