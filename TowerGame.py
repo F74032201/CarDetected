@@ -87,7 +87,6 @@ class Tower:
 		self.image = pygame.transform.scale(self.image,(self.picwidth,self.picwidth))
 		self.image.set_colorkey( (0,0,0), RLEACCEL )
 		self.done = False
-		self.id = 0
 
 	def draw(self, surface):
 		""" 
@@ -127,7 +126,7 @@ class App:
 					  ,'B':[(1,4),(1,5),(2,3),(2,4),(3,2),(3,3),(4,1),(4,2),(5,1),(6,1)]\
 					  ,'C':[(7,1),(7,2),(6,2),(6,3),(5,2),(5,3),(5,4),(4,3),(4,4),(4,5) \
 					  		,(3,4),(3,5),(3,6),(2,5),(2,6),(1,6),(1,7)]} # Set turret position
-		self.tower['A_Base'] = None
+		self.tower['A_Base'] = None		# dict for 
 		self.tower['B_Base'] = None
 		self.defend_region = {'A':[(2,1),(3,1),(2,2),(1,2),(1,3)]\
 							, 'B':[(7,5),(7,6),(6,6),(6,7),(5,7)]}
@@ -178,13 +177,6 @@ class App:
 		self.Con.towers_pos = [(-1,-1),(-1,-1),(-1,-1)]
 		self.Con.base_situation = {'A':'C', 'B':'C'}
 
-		# self._running = True
-		# self.add_player([0,0,255], "A") #0
-		# # self.add_player([255,0,0], "B") #1
-		# self.player[1].x = self.player[1].map_width-self.player[1].picwidth
-		# self.player[1].y = self.player[1].map_height-self.player[1].picwidth
-		
-		# self._time_surf = self.timefont.render("Score : Team_A : "+str(self.teamA_point)+"    Team_B : "+str(self.teamB_point), False, (255, 255, 255))
 		self.Tower_init()
 
 		# check if the player just stay at same place or not

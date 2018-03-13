@@ -11,6 +11,12 @@ import pygame
 
 
 class PositionThread(Thread):
+	"""
+	Thread for updating player's position.
+
+	Args:
+		player: object of individual player.
+	"""
 	def __init__(self, player):
 		super(PositionThread, self).__init__()
 		self.player = player
@@ -21,7 +27,12 @@ class PositionThread(Thread):
 		self.player.RefreshPos()
 
 class SetcolorThread(Thread):
-	"""Thread for setting color."""
+	"""
+	Create a thread to set color of player, triggered by button 'set color'.
+	
+	Args:
+		player: object of individual player.
+	"""
 	def __init__(self, player):
 		Thread.__init__(self)
 		self.player = player
@@ -40,39 +51,39 @@ class Player(object):
 		self.border_H = border_H
 		self.border_W = border_W
 		self.block_size = block_size
-		
-		self.id = 0
+
 		self.done = False
-		self.blood = 180
-		self.blood_count = 180
+		self.blood = 180		# initial blood of player.
+		self.blood_count = 180	# set a count of decreasing blood.
 		self.stay_time = 0
 		self.stay_pos = (-1,-1)
 		self.still_alive = True
 		self.score = 0
 		self.picwidth =32
 		self.pos = (-1,-1)
-
-		self.BaseOpen = False
+		self.BaseOpen = False		
 		
-
 		self.x = 0
 		self.y = 0
 		self.Color = [0,0,0]
 		self.team = None
 		self.image = None
 
+		# integer to record the time.
 		self.game_time_min = 0
 		self.game_time_sec = 0
 		self.game_time_sec10 = 0
 
-		#control the thread to be over
+		# control the thread to be over.
 		self.Connected = True
 		self.tmp_frame = None
 		self.wallHigh = 10
 		self.carHigh = 10
-		#create thread to refresh position
+
+		# create thread to refresh position.
 		self.pos_thread = PositionThread(self)
 
+		# Frame of each player on the main window.
 		self.frame = LabelFrame(self.root,text = self.name,foreground = 'blue')
 		self.frame.pack(fill='x',padx=10,pady=8)
 
@@ -80,10 +91,12 @@ class Player(object):
 		self.C1 = Checkbutton(self.frame, variable = self.CheckVar,onvalue = 1, offvalue = 0).pack(side = LEFT)
 		self.SetColorBtn=Button(self.frame,text="Set color",command=self.create_setcolor_thread).pack(side = LEFT)
 
+		# label for showing the selected color. 
 		self.RGB = Label(self.frame,text = '   ')
 		self.RGB.pack(side = LEFT)
 		self.startbt = Button(self.frame, text = "Start", command = self.pos_thread.start).pack(side = LEFT)
-			
+
+		# Blood and score label.	
 		self.BSVar = StringVar()
 		self.BSVar.set('HP:'+str(self.blood) + '/score:'+str(self.score))
 		self.BSlabel = Label(self.frame,textvariable = self.BSVar)
@@ -91,29 +104,39 @@ class Player(object):
 		self.BSlabel.bind("<Button-3>", self.blood_minus)
 		self.BSlabel.pack(side = RIGHT)
 
+		# Set car high button.
 		self.HighStr = StringVar()
 		self.HighBtn = Button(self.frame,text = "設定車高",command =self.SetCarHigh).pack(side = RIGHT)
 		self.SetHighTextBox = Entry(self.frame,width = 4,textvariable = self.HighStr).pack(side = RIGHT)
 
+		# Display car position label
 		self.CarPosStr = StringVar()
 		self.CarPosStr.set(str(self.pos))
 		self.CarPos = Label(self.frame,textvariable = self.CarPosStr).pack(side = LEFT)
+	
 	def delete(self):
+		"""Delete the frame on main window."""
 		self.frame.destroy()
 
 	def blood_add(self ,event):
+		"""Add 1 blood and change the label."""
 		self.blood += 1
 		self.BSVar.set('HP:'+str(self.blood) + '/score:'+str(self.score))
 
 	def blood_minus(self ,event):
+		"""Minus 1 blood and change the label."""
 		self.blood -= 1
 		self.BSVar.set('HP:'+str(self.blood) + '/score:'+str(self.score))
 
 	def create_setcolor_thread(self):
+		"""function for creating a thread to set color of player."""
 		setcolor_thread = SetcolorThread(self)
 		setcolor_thread.start()
 
 	def RefreshColor(self):
+		"""
+		Show the window and select the color of player. Press s to quit the loop.
+		"""
 		cv2.namedWindow('Set Color (s to quit)')
 		cv2.setMouseCallback('Set Color (s to quit)',self.on_mouse)
 		self.DP.Result_lock.acquire()
@@ -123,7 +146,7 @@ class Player(object):
 		while True:
 			car = self.FindPos(self.tmp_frame,self.DP.Result_lock,(0,0))
 			cv2.circle( self.tmp_frame, car, 5, (0, 0, 150), -1)
-			# print("1")
+
 			cv2.imshow('Set Color (s to quit)',self.tmp_frame)
 			cv2.waitKey(1)
 			cv2.waitKey(1)
@@ -132,7 +155,6 @@ class Player(object):
 			self.DP.Result_lock.acquire()
 			self.tmp_frame = self.DP.Result
 			self.DP.Result_lock.release()
-			# print("2")
 			if cv2.waitKey(1) & 0xFF == ord('s'):
 				cv2.destroyWindow("Set Color (s to quit)")
 				cv2.waitKey(1)
@@ -147,9 +169,8 @@ class Player(object):
 
 		
 	def on_mouse(self,event,x,y,flags,param):
-		
-		if event == cv2.EVENT_LBUTTONDOWN:
-			
+		"""Click event and save select color."""
+		if event == cv2.EVENT_LBUTTONDOWN:			
 			#cv2.circle(self.tmp_frame,(x,y),5,[255,255,0],2)
 			#print(self.Color)
 			self.Color = [int(self.tmp_frame[y,x][0]),int(self.tmp_frame[y,x][1]),int(self.tmp_frame[y,x][2])]
@@ -157,7 +178,17 @@ class Player(object):
 			
 
 	def FindPos(self, src, lock, lastcar):
-		# print("in Find")
+		"""
+		Function to update position of selected color of player.
+
+		Args:
+			src: The frame has been transformed.
+			lock: Set a lock mechanism to prevent from race condition problem.
+			lastcar: Last time position.
+
+		Returns: 
+			car: Calculated position.
+		"""
 		#convert RGB to HSV
 		lock.acquire()
 		hsv = cv2.cvtColor(src, cv2.COLOR_BGR2HSV)
@@ -215,14 +246,17 @@ class Player(object):
 		return car
 
 	def RefreshPos(self):
+		"""
+		Calculate the acurrate position by Interpolation method.
+		"""
 		Upos = [0,0]
 		Dpos = [0,0]
 		while self.Connected:
-			#Find positions of two parallel planes
+			# Find positions of two parallel planes
 			Upos = self.FindPos(self.UP.Result,self.UP.Result_lock,Upos)
 			Dpos = self.FindPos(self.DP.Result,self.DP.Result_lock,Dpos)
 			
-			#Calculate real position
+			# Calculate real position
 			lastX = (( Upos[0] * self.carHigh ) + (Dpos[0] * (self.wallHigh - self.carHigh))) / self.wallHigh
 			lastY = (( Upos[1] * self.carHigh ) + (Dpos[1] * (self.wallHigh - self.carHigh))) / self.wallHigh
 
@@ -232,7 +266,6 @@ class Player(object):
 			self.x, self.y = (int(self.x / 512 * self.border_W * self.block_size - self.picwidth/2)\
 				,int(self.y / 512 * self.border_H * self.block_size - self.picwidth/2))
 			self.CarPosStr.set(str((int(self.x + self.picwidth/2), int(self.y + self.picwidth/2))))
-			# print(self.pos)
 
 	def game_init(self):
 		self.map_width = self.border_W * self.block_size
@@ -246,9 +279,7 @@ class Player(object):
 		self._blood_surf = self.bloodfont.render("Hp:"+str(self.blood), False, (0, 0, 0))
 
 	def update(self):
-
-		#update position of player
-
+		""""Update position of player by each step."""
 		if self.direction == 0:
 			self.x += 10
 			self.angle = 0
@@ -299,5 +330,6 @@ class Player(object):
 		print("%s's car high set to %d" %(self.name,self.carHigh))
 
 	def big_pos(self):
+		"""Return the roughly position of nxn."""
 		return (int((self.x+16) / self.block_size), int((self.y+16) / self.block_size))
 
