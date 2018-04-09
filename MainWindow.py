@@ -28,6 +28,7 @@ class myThread(Thread):
 		self._stop_event = threading.Event()
 
 	def run(self):
+		# Execute function WaitingConnection() in 'Connection.py'. 
 		self.con.WaitingConnection()
 
 	def stop(self):
@@ -53,18 +54,18 @@ class myThreadTransform(Thread):
 		self._stop_event = threading.Event()
 
 	def run(self):
-		show_flag = True
+		# Continue to convert the incoming picture into a square.
 		while True:
 			self.UP.RefreshResult()
 			self.DP.RefreshResult()
 
 
-	def stop(self):
-		print("Stop connection loop")
-		self._stop_event.set()
+	# def stop(self):
+	# 	print("Stop connection loop")
+	# 	self._stop_event.set()
 
-	def stopped(self):
-		return self._stop_event.is_set()
+	# def stopped(self):
+	# 	return self._stop_event.is_set()
 
 
 class myThreadFrame(Thread):
@@ -78,10 +79,13 @@ class myThreadFrame(Thread):
 		Thread.__init__(self)
 		self.cap = cap
 		self.frame = None
+		
+		# In order to prevent race condition problem, set a lock to be used at somewhere.
 		self.frame_lock = Lock()
 
 	def run(self):
 		while True:
+			# Continue to read frame of camera.
 			ret, Frame = self.cap.read()
 			self.frame = cv2.resize(Frame,None,fx=1, fy=1, interpolation = cv2.INTER_CUBIC)
 			if ret == False:
@@ -97,12 +101,13 @@ class GameThread(Thread):
 	def __init__(self, Con):
 		super(GameThread, self).__init__()
 		self.Con = Con
+		# Create an object of the game (in TowerGame.py).
 		self.App = App(self.Con)
 		
 	def run(self):
-		""""""
+		# Before game begining, initialize all the players and set each color.
 		for idx in list(self.Con.player):
-			if type(self.Con.player[idx]) != type('a'):
+			if type(self.Con.player[idx]) != type('a'):		# The first item of dict 'player' is a string.
 				self.Con.player[idx].game_init()
 				ChangeColor(self.Con.player[idx].image, self.Con.player[idx].Color)
 		self.App.on_execute()
@@ -115,6 +120,7 @@ class MazeColorThread(Thread):
 		self.DP = DP
 		
 	def run(self):
+		# Call the function to let the user select the color of four corners (up and down).
 		self.UP.RefreshColor()
 		self.DP.RefreshColor()
 
@@ -122,6 +128,7 @@ class MazeColorThread(Thread):
 class RefreahPointsThread(MazeColorThread):
 	"""Thread for refreshing 4 points and show the results."""
 	def run(self):
+		# When button '攝影機晃到' clicked then refresh the points of four corners.
 		self.UP.RefreshPoints()
 		self.DP.RefreshPoints()
 		cv2.namedWindow('UP (w to quit)')
@@ -129,7 +136,7 @@ class RefreahPointsThread(MazeColorThread):
 		while 1:
 			cv2.imshow('UP (w to quit)',self.UP.Result)
 			cv2.imshow('DP (w to quit)',self.DP.Result)
-			# click 'w' to quit the window, and use wait keys to keep from crashing
+			# click 'w' to quit the window, and use cv2.waitKey(1) to keep from crashing because of bugs of cv.
 			if cv2.waitKey(1) & 0xFF == ord('w'):
 				cv2.destroyWindow("UP (w to quit)")	
 				cv2.waitKey(1)
@@ -182,6 +189,7 @@ def kick(Con):
 	"""
 	for idx in list(Con.player):
 		if type(Con.player[idx]) != type('a'):
+			# Delete the player with checkbox selected.
 			if Con.player[idx].CheckVar.get():
 				Con.DELETE(idx)
 				
@@ -194,12 +202,14 @@ def transmit(Con,mes,chatbox):
 		mes: text in the text box of main window
 		chatbox: object of terminal of main window, used to dispkay message between players and server
 	"""
+	# Get the message in the textbox.
 	tmp_message = mes.get()
 	for idx in list(Con.player):
 		if type(Con.player[idx]) != type('a'):
 			if Con.player[idx].CheckVar.get():
 				Con.ser_send_data(idx,tmp_message)
 				mes.set('')
+				# Print onto the terminal of mainwindow.
 				chatbox.insert(INSERT, 'Master send to %s : %s\n' %(Con.player[idx].name,tmp_message))
 				chatbox.see(END)
 	
@@ -277,17 +287,20 @@ if __name__ == "__main__":
 
 	cap = cv2.VideoCapture(0)		# create camera obj
 
-	# set camera view border
-	cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280);
-	cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720);
+	# Set camera resolution to 1280x720.
+	cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+	cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
+	# Set a thread to keep on reading the frames of camera.
 	framethread = myThreadFrame(cap)
 	framethread.start()
 
-	UP = TransformMaze(framethread)
+	UP = TransformMaze(framethread)	# Create an object to save the result of four corner correction (up side).
 	UP.Color = [36, 11, 185]		# default color of red
-	DP = TransformMaze(framethread)
+	DP = TransformMaze(framethread)	# Create an object to save the result of four corner correction (down side).
 	DP.Color = [137, 76, 10]		# default color of blue
+	
+	# Create mainframe and pack onto the root.
 	main_frame = Frame(win)
 	main_frame.pack()
 
@@ -321,6 +334,7 @@ if __name__ == "__main__":
 	# Button for clearing terminal text 
 	chatboxbt = Button(win , text = 'clear', command=lambda: chatbox.delete(1.0, END)).pack()
 
+	# Layers of LabelFrame to show the information of players.
 	main_frame_player = LabelFrame(win,text = "連線玩家",foreground = 'blue')
 	main_frame_player.pack(fill='x',padx=10,pady=2)
 	
@@ -335,14 +349,17 @@ if __name__ == "__main__":
 
 	main_frame_player_teamB = LabelFrame(main_frame_player_team,text = "Team B",foreground="red")
 	main_frame_player_teamB.pack(side = RIGHT)
-	
+	 
+	# Default with 9x9 maps.
 	border_H = 9
 	border_W = 9
-	block_size = 64
+	block_size = 64		# Cut a map into 64 pieces. (for more accurate coordinate)
+
 	# create connection obj
 	Con = ServerConnection(main_frame_player_teamA,main_frame_player_teamB, chatbox , UP, DP, border_H, border_W, block_size)
 	Con.OpenServerSocket()
 
+	# Set buttons and the triggered functions.
 	mes = StringVar()
 	refresh_4point = Button(main_frame_player_box , text = "攝影機晃到" , command = lambda:create_refresh4_thread(UP,DP)).pack(side = RIGHT)
 	delete_button = Button(main_frame_player_box, text = "踢除" , command = lambda: kick(Con)).pack(side = RIGHT)
@@ -350,6 +367,7 @@ if __name__ == "__main__":
 	message_textbox = Entry(main_frame_player_box, width=16, textvariable = mes).pack(side = RIGHT)
 	message_label1 = Label(main_frame_player_box,text="勾選以下用戶做操作:").pack(side = LEFT)	
 	
+	# Button to start the game.
 	gamebt = Button(win , text = 'Game Start' ,command = lambda: GameRestart(Con,chatbox) ).pack()
 
 
