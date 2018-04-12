@@ -17,17 +17,22 @@ def ChangeColor(image,color):
 		image: input image
 		color: the color which we want for image
 	"""
+
+	# Get information of the image
 	w, h = image.get_size()
 	b, g, r = color
-	o_r, o_g, o_b, _ = image.get_at((16, 16))
+	o_r, o_g, o_b, _ = image.get_at((16, 16)) 
+
+	# Assume that the color at pixel(16, 16) is the color of the image
+	# Change all pixels with same color to the specified color, and others to black
 	for x in range(w):
 		for y in range(h):
 			if image.get_at((x, y))[0] == o_r and image.get_at((x, y))[1] == o_g and image.get_at((x, y))[2] == o_b:
-				a = image.get_at((x, y))[3]
+				a = image.get_at((x, y))[3] # opacity
 				image.set_at((x, y), pygame.Color(r, g, b, a))
 			else:
 				image.set_at((x, y), pygame.Color(0, 0, 0, 0))
-	image.set_colorkey( (0,0,0), RLEACCEL )
+	image.set_colorkey( (0,0,0), RLEACCEL ) # make every pixel with black color to be transparent
 	   
 
 class Game:
@@ -35,7 +40,7 @@ class Game:
 	Class that collect the game logic
 	"""
 
-	picwidth = 32
+	picwidth = 32 # every object's image in this game show is 32*32 
 	def isCollision(self,x1,y1,x2,y2,bsize):
 		"""
 		function for judging if two object is collision or not
@@ -47,20 +52,28 @@ class Game:
 			y2: Object2's y coordinates
 			bsize: Object's size
 		"""
-		
+
+		# Check whether Object1's upper left is inside object2
 		if x1 >= x2 and x1 <= x2+bsize:
 			if y1 >= y2 and y1 <= y2+bsize:
 				return True
+
+		# Check whether Object1's upper right is inside object2
 		if x1+self.picwidth >= x2 and x1+self.picwidth <= x2+bsize:
 			if y1 >= y2 and y1 <= y2+bsize:
 				return True
+
+		# Check whether Object1's lower left is inside object2
 		if x1 >= x2 and x1 <= x2+bsize:
 			if y1+self.picwidth >= y2 and y1+self.picwidth <= y2+bsize:
 				return True
+
+		# Check whether Object1's lower right is inside object2
 		if x1+self.picwidth >= x2 and x1+self.picwidth <= x2+bsize:
 			if y1+self.picwidth >= y2 and y1+self.picwidth <= y2+bsize:
 				return True
 
+		# No collision
 		return False
 
 		
@@ -78,15 +91,15 @@ class Tower:
 	"""
 	picwidth = 32
 	def __init__(self,xy,block_size,pic):
-		self.block_size = block_size
-		self.xy = xy
+		self.block_size = block_size # use for calculate precise position of tower
+		self.xy = xy # tuple of coordinate
 		self.x,self.y = xy
-		self.x = self.x * self.block_size + self.block_size/4
-		self.y = self.y * self.block_size + self.block_size/4
+		self.x = self.x * self.block_size + self.block_size/4 # to precise x-coordinate
+		self.y = self.y * self.block_size + self.block_size/4 # to precise y-coordinate
+		# set image of tower
 		self.image = pygame.image.load(pic).convert()
 		self.image = pygame.transform.scale(self.image,(self.picwidth,self.picwidth))
 		self.image.set_colorkey( (0,0,0), RLEACCEL )
-		self.done = False
 
 	def draw(self, surface):
 		""" 
@@ -106,20 +119,19 @@ class App:
 	tower = {}
 
 	def __init__(self,Con):
-		self.Con = Con
-		self._running = True
-		self._GG = None
-		self._display_surf = None
-		self._image_surf = None
-		self._time_surf = None
-		self._score_surf = None
+		self.Con = Con # for player information
+		self._running = True # whole game's status, False means game is over
+		self._GG = None # store game's result
+		self._display_surf = None # whole game screen
+		self._time_surf = None # font section that display time
+		self._score_surf = None # font section that display score
 		self.block_size = Con.block_size
 		self.GameHeigh = Con.border_H * Con.block_size
 		self.GameWidth = Con.border_W * Con.block_size
 		self.textsurfHeight = 30
 		self.windowHeigh = self.GameHeigh + self.textsurfHeight
 		self.windowWidth = self.GameWidth
-		self.open_base_time = -1
+		self.open_base_time = -1 # record the time the base is open
 		self.count_down_final = False # use to record the base to open
 		self.Base = {'A':(1,1),'B':(7,7)} # Set Base for A,B. 
 		self.turret = {'A':[(7,3),(7,4),(6,4),(6,5),(5,5),(5,6),(4,6),(4,7),(3,7),(2,7)]\
@@ -141,10 +153,11 @@ class App:
 
 		"""
 		pygame.init()
+
+		# set surface
 		self._display_surf = pygame.display.set_mode((self.windowWidth, self.windowHeigh), pygame.HWSURFACE)
 		pygame.display.set_caption('Tower War (esc to quit)')
-
-		pygame.font.init() # for using font, and we can draw the text on surface
+		pygame.font.init() # using font, and we can draw the text on surface
 		self.timefont = pygame.font.SysFont('Comic Sans MS', 30) # for time display
 		self.scorefont = pygame.font.SysFont('Comic Sans MS', 30) # for score display
 
@@ -157,7 +170,7 @@ class App:
 
 		# set clock to get the time of game
 		self.start_ticks = pygame.time.get_ticks()
-		self.count_down = 300 # count down for 3 mins
+		self.count_down = 300 # count down for 5 mins
 		self.passed_sec = int((pygame.time.get_ticks() - self.start_ticks)/1000) # milliseconds to seconds
 		self.game_time_sec = self.count_down - self.passed_sec # left sec
 		self.game_time_sec10 = int(self.game_time_sec/10)
@@ -201,6 +214,7 @@ class App:
 		Main body of game. In calling of on_loop, we will check each condition, such as gameover or not, 
 		if any collision? control blood, refresh position of each object, etc.
 		"""
+		# update time
 		self.passed_sec = int((pygame.time.get_ticks() - self.start_ticks)/1000) # milliseconds to seconds
 		self.game_time_sec = self.count_down - self.passed_sec # left sec
 		self.game_time_sec10 = int(self.game_time_sec/10)
@@ -209,6 +223,7 @@ class App:
 		self.game_time_sec10 = int(self.game_time_sec10%6)
 		self._time_surf = self.timefont.render("Remaining Time : "+str(self.game_time_min)+": "+str(self.game_time_sec10)\
 		+str(self.game_time_sec), False, (255, 255, 255))
+
 		# Setting sending text into connection object.
 		if 'A' in self.tower:
 			self.Con.towers_pos = [(int(self.tower['A'].x + self.block_size/4), int(self.tower['A'].y + self.block_size/4))\
@@ -230,7 +245,7 @@ class App:
 		Second to determine whether someone has stepped into the specific region
 		to over the game or gain some scores.
 		Third to check is there anyone out of blood, then kill him.
-		"""
+		"""3
 		if self.count_down - self.passed_sec <= 0: # Time's up
 			self._running = False
 
@@ -519,7 +534,7 @@ class App:
 				if type(self.Con.player[i]) != type('a') and self.Con.player[i].team == 'B':
 					print_mes = print_mes + ("%s blood: %d / score： %d\n" \
 						%(self.Con.player[i].name,self.Con.player[i].blood,self.Con.player[i].score))
-					# self.Con.player[i].done = False
+
 			print_mes = print_mes + ("\n剩餘時間: %d分 %d%d秒" \
 				%(self.game_time_min,self.game_time_sec10,self.game_time_sec))
 			messagebox.showinfo(self._GG,print_mes)
@@ -534,6 +549,7 @@ class App:
 
 		"""
 		while(self._running):
+			# get key event
 			pygame.event.pump()
 			keys = pygame.key.get_pressed()
 
