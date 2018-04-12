@@ -24,25 +24,34 @@ class TransformMaze(object):
 
 	def RefreshResult(self):
 		"""
-		Use the four points found by color to generate a square resault
+		Use the four points found by color to generate a square result
 
 		Sort the points such that: first one at upper left, second one at upper right,
 		third one at lower left, fourth one at lower right.
-		Function warpPerspective will return the resault of correct one.
+		Function getPerspectiveTransform can help to generate a transform metrix, 
+		set new 4 points we got above as pts1, and set origin corners as pts2,
+		make them be the parameters of getPerspectiveTransform and we get a transform metrix M.
+		With metrix M function warpPerspective will return the result of correct one.
 		"""
-		self.Points.sort(key=itemgetter(1))
-		if int(self.Points[0][0]) > int(self.Points[1][0]):
+		# make sure 4 points store in the order we set
+		self.Points.sort(key=itemgetter(1))	# Sort by y coordinate
+		# Sort top 2 points by x coordinate
+		if int(self.Points[0][0]) > int(self.Points[1][0]): 
 			temp = self.Points.pop(0)
 			self.Points.insert(1, temp)
+		# Sort the other 2 points by x coordinate
 		if int(self.Points[2][0]) > int(self.Points[3][0]):
 			temp = self.Points.pop(2)
 			self.Points.insert(3, temp) 
 
-		pts1 = np.float32(self.Points)
+		# generate transform metrix
+		# pts1 is new 4 corners, pts2 is origin corners
+		pts1 = np.float32(self.Points)	
 		pts2 = np.float32([[0, 0], [self.width, 0], [0, self.height], [self.width, self.height]])
-		M = cv2.getPerspectiveTransform(pts1, pts2)
+		M = cv2.getPerspectiveTransform(pts1, pts2)	# Transform metrix
 
-		self.framethread.frame_lock.acquire()
+		# Use matrix to generate the result
+		self.framethread.frame_lock.acquire()	# Lock for self.framethread.frame 
 		self.Result = cv2.warpPerspective(self.framethread.frame, M, (self.width, self.height)) 
 		self.framethread.frame_lock.release()
 
