@@ -18,6 +18,7 @@ class ServerConnection:
 	def __init__(self, rootA, rootB, chatbox, UP, DP, border_H, border_W, block_size):
 		self.UP = UP
 		self.DP = DP
+		self.chatbox = chatbox
 		self.rootA = rootA
 		self.rootB = rootB
 		self.border_H = border_H
@@ -29,8 +30,7 @@ class ServerConnection:
 		self.player = {}								# dict for collecting players' information. keys of dict are used to be sockets of players,
 														# and elements are used to be object of player, except the server which is string "Master".
 														
-		self.player_num = 0
-		self.chatbox = chatbox
+		self.player_num = 0		
 		self.game_start = False							# Flag for game start or not, if true, new clients are not allowed to connect. 
 		self.towers_pos = [(-1,-1), (-1,-1), (-1,-1)]	# Three towers in the game default position is out of the map.
 		self.base_situation = {'A':'C', 'B':'C'}		# Record the base is 'close' or 'open'.
@@ -115,6 +115,7 @@ class ServerConnection:
 		self.server_socket.bind(("0.0.0.0", self.PORT))
 		self.server_socket.listen(10)
 
+		# The player dict has a string item that represent server.
 		self.player[self.server_socket] = "Master"
 		print ("Chat server started on port " + str(self.PORT))
 
@@ -123,12 +124,13 @@ class ServerConnection:
 		Endless loop to receive the quest of new clients and message from clients.
 		"""
 		while 1:
-			# Get the list sockets which are ready to be read through select
+			# Save players' sockets in CONNECTION_LIST.
 			CONNECTION_LIST = []
 			for i in self.player:
 			    CONNECTION_LIST.append(i)
 
-			read_sockets,write_sockets,error_sockets = select.select(CONNECTION_LIST,[],[])
+			# Get the list sockets which are ready to be read through select.
+			read_sockets,write_sockets,error_sockets = select.select(CONNECTION_LIST, [], [])
 
 			for sock in read_sockets:
 			    # New connection
@@ -149,10 +151,13 @@ class ServerConnection:
 			            # In Windows, sometimes when a TCP program closes abruptly,
 			            # a "Connection reset by peer" exception will be thrown
 			            data = sock.recv(self.RECV_BUFFER).decode('utf-8')
-			            # regist id
+			            
+			            # Receive string contains 'Register' then create a player object. 
 			            if 'Register' in data:
+			            	# Send some message to welcome user.
 			                sock.send("Master|Client hello!\r".encode(encoding='utf-8'))
-			                # Create player object according to the registed team. 
+			                
+			                # Create player object according to the registered team. 
 			                if data[8] == 'A':
 			                	self.player[sock] =  Player(self.rootA, data[10:], self.UP, self.DP, self.border_H, self.border_W, self.block_size)
 			                	self.player[sock].team = "A"
@@ -162,26 +167,29 @@ class ServerConnection:
 
 			                print(self.player[sock])
 
+			            # Receive string contains 'Broadcast' then broadcast to other players. 
 			            elif 'Broadcast' in data:
 			                self.broadcast_data(sock, data+'\r') 
 
-						# Client ask for its position. 
+						# Receive string contains 'Position' then send its position back. 
 			            elif 'Position' in data:
 			            	self.ser_send_data(sock,"POS:"+str((int(self.player[sock].x + 16),int(self.player[sock].y + 16)))\
 			            			+ "BaseA:" + str(self.base_situation['A'] + "BaseB:" + str(self.base_situation['B']))\
 			            			+ "Towers:" + str(self.towers_pos[0]) + str(self.towers_pos[1]) + str(self.towers_pos[2])\
 			            			+ "Blood:" + str(self.player[sock].blood))
 
-						# Client ask for position of it's teammate.
+						# Receive string contains 'Position' then send position of it's teammate back.
 			            elif 'AskPos' in data:
 			            	for idx in self.player:
 			            		if type(self.player[idx]) != type('a'):
-			            			if self.player[idx].name == data[7:]:	# Find the player.
-			            				if self.player[sock].team == self.player[idx].team:	# Check that are they the same team.
+			            			# Find teammates except itself.
+			            			if self.player[idx].name == data[7:]:
+			            				# Check whether thet are in the same team.
+			            				if self.player[sock].team == self.player[idx].team:	
 			            					self.ser_send_data(sock, str(self.player[idx].name) + ':' + \
 			            						str((int(self.player[idx].x + 16), int(self.player[idx].y + 16))))
 
-			            # Send text to specific client.   
+			            # Otherwise send text to specific client.   
 			            elif '|' in data:
 			                self.send_data(sock,data+'\r')
 			                
