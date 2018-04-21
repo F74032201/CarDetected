@@ -118,27 +118,27 @@ class App:
 	"""
 	tower = {}
 
-	def __init__(self,Con):
-		self.Con = Con # for player information
-		self._running = True # whole game's status, False means game is over
-		self._GG = None # store game's result
-		self._display_surf = None # whole game screen
-		self._time_surf = None # font section that display time
-		self._score_surf = None # font section that display score
+	def __init__(self,Con):	
+		self.Con = Con 						# for player information
+		self._running = True 				# whole game's status, False means game is over
+		self._GG = None 					# store game's result
+		self._display_surf = None   		# whole game screen
+		self._time_surf = None 				# font section that display time
+		self._score_surf = None 			# font section that display score
 		self.block_size = Con.block_size
 		self.GameHeigh = Con.border_H * Con.block_size
 		self.GameWidth = Con.border_W * Con.block_size
 		self.textsurfHeight = 30
 		self.windowHeigh = self.GameHeigh + self.textsurfHeight
 		self.windowWidth = self.GameWidth
-		self.open_base_time = -1 # record the time the base is open
-		self.count_down_final = False # use to record the base to open
-		self.Base = {'A':(1,1),'B':(7,7)} # Set Base for A,B. 
+		self.open_base_time = -1 			# record the time the base is open
+		self.count_down_final = False 		# use to record the base to open
+		self.Base = {'A':(1,1),'B':(7,7)} 	# Set Base for A,B. 
 		self.turret = {'A':[(7,3),(7,4),(6,4),(6,5),(5,5),(5,6),(4,6),(4,7),(3,7),(2,7)]\
 					  ,'B':[(1,4),(1,5),(2,3),(2,4),(3,2),(3,3),(4,1),(4,2),(5,1),(6,1)]\
 					  ,'C':[(7,1),(7,2),(6,2),(6,3),(5,2),(5,3),(5,4),(4,3),(4,4),(4,5) \
 					  		,(3,4),(3,5),(3,6),(2,5),(2,6),(1,6),(1,7)]} # Set turret position
-		self.tower['A_Base'] = None		# dict for 
+		self.tower['A_Base'] = None			 
 		self.tower['B_Base'] = None
 		self.defend_region = {'A':[(2,1),(3,1),(2,2),(1,2),(1,3)]\
 							, 'B':[(7,5),(7,6),(6,6),(6,7),(5,7)]}
@@ -157,9 +157,9 @@ class App:
 		# set surface
 		self._display_surf = pygame.display.set_mode((self.windowWidth, self.windowHeigh), pygame.HWSURFACE)
 		pygame.display.set_caption('Tower War (esc to quit)')
-		pygame.font.init() # using font, and we can draw the text on surface
-		self.timefont = pygame.font.SysFont('Comic Sans MS', 30) # for time display
-		self.scorefont = pygame.font.SysFont('Comic Sans MS', 30) # for score display
+		pygame.font.init()	# using font, and we can draw the text on surface
+		self.timefont = pygame.font.SysFont('Comic Sans MS', 30)	# for time display
+		self.scorefont = pygame.font.SysFont('Comic Sans MS', 30)	# for score display
 
 		# load image and then change size and color
 		self.bg_image = pygame.image.load('img/finalmap.png').convert()
@@ -170,15 +170,15 @@ class App:
 
 		# set clock to get the time of game
 		self.start_ticks = pygame.time.get_ticks()
-		self.count_down = 300 # count down for 5 mins
-		self.passed_sec = int((pygame.time.get_ticks() - self.start_ticks)/1000) # milliseconds to seconds
-		self.game_time_sec = self.count_down - self.passed_sec # left sec
+		self.count_down = 300	# count down for 5 mins
+		self.passed_sec = int((pygame.time.get_ticks() - self.start_ticks)/1000)	# milliseconds to seconds
+		self.game_time_sec = self.count_down - self.passed_sec	# left sec
 		self.game_time_sec10 = int(self.game_time_sec/10)
 		self.game_time_sec = int(self.game_time_sec%10)
 		self.game_time_min = int(self.game_time_sec10/6)
 		self.game_time_sec10 = int(self.game_time_sec10%6)
 		self._time_surf = self.timefont.render("Remaining Time : "+str(self.game_time_min)+": "+\
-			str(self.game_time_sec10)+str(self.game_time_sec), False, (255, 255, 255)) # show time on surface
+			str(self.game_time_sec10)+str(self.game_time_sec), False, (255, 255, 255))	# show time on surface
 		
 		# initial the player information
 		for i in list(self.Con.player):
@@ -215,8 +215,8 @@ class App:
 		if any collision? control blood, refresh position of each object, etc.
 		"""
 		# update time
-		self.passed_sec = int((pygame.time.get_ticks() - self.start_ticks)/1000) # milliseconds to seconds
-		self.game_time_sec = self.count_down - self.passed_sec # left sec
+		self.passed_sec = int((pygame.time.get_ticks() - self.start_ticks)/1000)	# milliseconds to seconds
+		self.game_time_sec = self.count_down - self.passed_sec	# left sec
 		self.game_time_sec10 = int(self.game_time_sec/10)
 		self.game_time_sec = int(self.game_time_sec%10)
 		self.game_time_min = int(self.game_time_sec10/6)
@@ -233,8 +233,8 @@ class App:
 			self.Con.towers_pos = [(-1,-1),(-1,-1),(-1,-1)]
 
 		self.blood_control()	# Change blood in any situation.
-		self.isGG()		# Check whether the game is over.
-		self.is_open_base()	# Check whether the bases shoud be opened or not, if so then open it, or close it.
+		self.isGG()				# Check whether the game is over.
+		self.is_open_base()		# Check whether the bases shoud be opened or not, if so then open it, or close it.
 		self.is_defend()
 		return
 
